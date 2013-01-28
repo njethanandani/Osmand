@@ -33,10 +33,10 @@
   <% @car_points.each_with_index do |point,i| %>
     points[<%=i%>] = [<%=point.lat%>,<%=point.lon%>];
   <% end %>
-  var total_points = points.length;
-  if (total_points > 0)
+  var num_points = points.length;
+  if (num_points > 0)
   {
-    last_point = points[total_points - 1];
+    last_point = points[num_points - 1];
     var map = L.map('map', {
       center: last_point,
       zoom: 13
