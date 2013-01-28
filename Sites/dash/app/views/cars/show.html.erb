@@ -30,18 +30,23 @@
 <script type="text/javascript">
   var default_zoom = 13;
   var points = new Array();
-  <% @points.each_with_index do |point,i| %>
+  <% @car_points.each_with_index do |point,i| %>
     points[<%=i%>] = [<%=point.lat%>,<%=point.lon%>];
   <% end %>
-  var map = L.map('map', {
-    center: [points[0][0],points[0][1]],
-    zoom: 13
-  });
-  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
-  add_point_to_map(points);
-  bound_map_to_points(points);
+  var total_points = points.length;
+  if (total_points > 0)
+  {
+    last_point = points[total_points - 1];
+    var map = L.map('map', {
+      center: last_point,
+      zoom: 13
+    });
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    add_points_to_map(points);
+    bound_map_to_points(points);
+  }
 </script>
 <hr />
 <%= link_to 'Edit', edit_car_path(@car) %> |
