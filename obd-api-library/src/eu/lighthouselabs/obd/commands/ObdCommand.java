@@ -9,10 +9,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
+import android.util.Log;
+
 /**
  * TODO put description
  */
 public abstract class ObdCommand {
+
+    private static final String TAG = "ObdCommand";
 
     static final String[] INVALID_RESPONSES = {
         "SEARCHING",
@@ -77,7 +81,7 @@ public abstract class ObdCommand {
 	protected void sendCommand(OutputStream out) throws IOException,
 			InterruptedException {
 		// add the carriage return char
-		cmd += "\r";
+		cmd += "\r\n";
 
 		// write to OutputStream, or in this case a BluetoothSocket
 		out.write(cmd.getBytes());
@@ -101,7 +105,7 @@ public abstract class ObdCommand {
 	 */
 	protected void resendCommand(OutputStream out) throws IOException,
 			InterruptedException {
-		out.write("\r".getBytes());
+		out.write("\r\n".getBytes());
 		out.flush();
 		/*
 		 * HACK GOLDEN HAMMER ahead!!
@@ -121,14 +125,24 @@ public abstract class ObdCommand {
 	 */
 	protected void readResult(InputStream in) throws IOException {
 		byte b = 0;
+		int resInt = -1;
 		StringBuilder res = new StringBuilder();
 
 		// read until '>' arrives
+		/*
 		while ((char) (b = (byte) in.read()) != '>')
+	                Log.d(TAG, "obd result char: " + (char) b);
 			if ((char) b != ' ')
 				res.append((char) b);
+		*/
 
-		/*
+		while (((resInt = in.read()) != -1) && (char) (b = (byte) resInt) != '>') {
+                    Log.d(TAG, "obd result char: " + (char) b);
+                    if ((char) b != ' ')
+                            res.append((char) b);                    
+		}
+
+                /*
 		 * Imagine the following response 41 0c 00 0d.
 		 * 
 		 * ELM sends strings!! So, ELM puts spaces between each "byte". And pay
