@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121120044906) do
+ActiveRecord::Schema.define(:version => 20130203151637) do
 
   create_table "cars", :force => true do |t|
     t.integer  "car_id"
@@ -27,16 +27,22 @@ ActiveRecord::Schema.define(:version => 20121120044906) do
   add_index "cars", ["user_id"], :name => "index_cars_on_user_id"
 
   create_table "points", :force => true do |t|
-    t.decimal  "lat",        :precision => 16, :scale => 6, :default => 0.0
-    t.decimal  "lon",        :precision => 16, :scale => 6, :default => 0.0
+    t.decimal  "lat",           :precision => 16, :scale => 6, :default => 0.0
+    t.decimal  "lon",           :precision => 16, :scale => 6, :default => 0.0
     t.string   "name"
     t.integer  "time"
-    t.decimal  "elevation",  :precision => 10, :scale => 2, :default => 0.0
-    t.decimal  "speed",      :precision => 10, :scale => 2, :default => 0.0
-    t.decimal  "hdop",       :precision => 10, :scale => 2, :default => 0.0
+    t.decimal  "elevation",     :precision => 10, :scale => 2, :default => 0.0
+    t.decimal  "speed",         :precision => 10, :scale => 2, :default => 0.0
+    t.decimal  "hdop",          :precision => 10, :scale => 2, :default => 0.0
     t.integer  "car_id"
-    t.datetime "created_at",                                                 :null => false
-    t.datetime "updated_at",                                                 :null => false
+    t.datetime "created_at",                                                    :null => false
+    t.datetime "updated_at",                                                    :null => false
+    t.decimal  "rpm",           :precision => 10, :scale => 2
+    t.decimal  "mileage",       :precision => 10, :scale => 2
+    t.decimal  "fuel_consumed", :precision => 10, :scale => 2
+    t.integer  "distance"
+    t.string   "type"
+    t.string   "trouble_codes"
   end
 
   add_index "points", ["car_id"], :name => "index_points_on_car_id"
