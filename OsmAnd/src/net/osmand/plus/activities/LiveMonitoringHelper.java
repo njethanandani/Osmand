@@ -3,7 +3,10 @@ package net.osmand.plus.activities;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.osmand.LogUtil;
 import net.osmand.plus.OsmandApplication;
@@ -11,10 +14,15 @@ import net.osmand.plus.OsmandSettings;
 import net.osmand.plus.R;
 
 import org.apache.commons.logging.Log;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -78,6 +86,62 @@ public class LiveMonitoringHelper  {
 		
 	}
 
+	public void sendPostData(LiveMonitoringData data) {
+	    String url = "http://localhost:3000/users";
+            try {
+                HttpEntity entity = getHttpEntityToPost(data);
+                if (entity != null) {
+                    HttpParams params = new BasicHttpParams();
+                    HttpConnectionParams.setConnectionTimeout(params, 15000);
+                    DefaultHttpClient httpClient = new DefaultHttpClient(params);
+                    HttpPost httpPost = new HttpPost(url);
+                    httpPost.setEntity(entity);
+                    HttpResponse response = httpClient.execute(httpPost);
+                    if(response.getStatusLine() == null || 
+                            response.getStatusLine().getStatusCode() != 200){
+                            
+                            String msg;
+                            if(response.getStatusLine() != null){
+                                    msg = ctx.getString(R.string.failed_op); //$NON-NLS-1$
+                            } else {
+                                    msg = response.getStatusLine().getStatusCode() + " : " + //$NON-NLS-1$//$NON-NLS-2$
+                                                    response.getStatusLine().getReasonPhrase();
+                            }
+                            log.error("Error sending monitor request request : " +  msg);
+                    } else {
+                            InputStream is = response.getEntity().getContent();
+                            StringBuilder responseBody = new StringBuilder();
+                            if (is != null) {
+                                    BufferedReader in = new BufferedReader(new InputStreamReader(is, "UTF-8")); //$NON-NLS-1$
+                                    String s;
+                                    while ((s = in.readLine()) != null) {
+                                            responseBody.append(s);
+                                            responseBody.append("\n"); //$NON-NLS-1$
+                                    }
+                                    is.close();
+                            }
+                            httpClient.getConnectionManager().shutdown();
+                            log.info("Montior response : " + responseBody.toString());
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed connect to " + url, e);
+            }
+	}
+	
+	HttpEntity getHttpEntityToPost(LiveMonitoringData data) {
+	    try {
+	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+    	        nameValuePairs.add(new BasicNameValuePair("name", "foobar"));
+                nameValuePairs.add(new BasicNameValuePair("username", "foobar@gmail.com"));
+                nameValuePairs.add(new BasicNameValuePair("password", "12345"));
+                return new UrlEncodedFormEntity(nameValuePairs);
+	    } catch (UnsupportedEncodingException e) {
+	        log.error("Failed to url encode data", e);
+	        return null;
+	    }
+	}
+	
 	public void sendData(LiveMonitoringData data) {
 		String url = MessageFormat.format(settings.LIVE_MONITORING_URL.get(), data.lat+"", data.lon+"", 
 				data.time+"", data.hdop+"", data.alt+"", data.speed+"");

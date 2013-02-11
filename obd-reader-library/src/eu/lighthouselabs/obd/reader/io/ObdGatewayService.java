@@ -3,7 +3,9 @@
  */
 package eu.lighthouselabs.obd.reader.io;
 
+import java.io.File;
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -25,6 +27,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android_serialport_api.SerialPort;
 import android.util.Log;
 import android.widget.Toast;
 import eu.lighthouselabs.obd.commands.ObdCommand;
@@ -43,8 +46,8 @@ import eu.lighthouselabs.obd.reader.io.ObdCommandJob.ObdCommandJobState;
 
 /**
  * This service is primarily responsible for establishing and maintaining a
- * permanent connection between the device where the application runs and a more
- * OBD Bluetooth interface.
+ * permanent connection between the device where the application runs and an
+ * OBD interface over a serial port.
  * 
  * Secondarily, it will serve as a repository of ObdCommandJobs and at the same
  * time the application state-machine.
@@ -69,11 +72,12 @@ public class ObdGatewayService extends Service {
 	private AtomicBoolean _isQueueRunning = new AtomicBoolean(false);
 	private Long _queueCounter = 0L;
 
-	private BluetoothDevice _dev = null;
-	private BluetoothSocket _sock = null;
-
+	private String serialPortPath = "/dev/ttyO3";
+	private int serialPortBaudrate = 38400;
+	private SerialPort serialPort = null;
+	
 	private String remoteDevice;
-        private int period;
+        private double period;
         private double ve;
         private double ed;
         private boolean imperialUnits = false;
@@ -133,7 +137,7 @@ public class ObdGatewayService extends Service {
 	    remoteDevice = bundle.getString(KEY_BLUETOOTH_DEVICE);
 	    ed = bundle.getDouble(KEY_ENGINE_DISPLACEMENT);
 	    ve = bundle.getDouble(KEY_VOLUMETRIC_EFFICIENCY);
-	    period = bundle.getInt(KEY_UPDATE_PERIOD);
+	    period = bundle.getDouble(KEY_UPDATE_PERIOD);
 	}
 	
 	private void startService() {
@@ -150,12 +154,12 @@ public class ObdGatewayService extends Service {
 		 */
 		//String remoteDevice = prefs.getString(
 		//        ConfigActivity.BLUETOOTH_LIST_KEY, null);
-		if (remoteDevice == null || "".equals(remoteDevice)) {
-			Toast.makeText(this, "No Bluetooth device selected",
+		if (serialPortPath == null || "".equals(serialPortPath)) {
+			Toast.makeText(this, "No serial port specified",
 			        Toast.LENGTH_LONG).show();
 
 			// log error
-			Log.e(TAG, "No Bluetooth device has been selected.");
+			Log.e(TAG, "No serial port has been specified.");
 
 			// TODO kill this service gracefully
 			stopService();
@@ -163,9 +167,20 @@ public class ObdGatewayService extends Service {
 			return;
 		}
 
-		final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
-		_dev = btAdapter.getRemoteDevice(remoteDevice);
+                /* Open the serial port */
+                try {
+                    serialPort = getSerialPort();
 
+                    /* Create a receiving thread */
+                    //mReadThread = new ReadThread();
+                    //mReadThread.start();
+                } catch (SecurityException e) {
+                    Log.d(TAG, "Security error while connecting to serial port.");
+                } catch (IOException e) {
+                    Log.d(TAG, "Error while connecting to serial port.");
+                } catch (InvalidParameterException e) {
+                    Log.d(TAG, "Configuration error while connecting to serial port.");
+                }
 		/*
 		 * TODO put this as deprecated Determine if upload is enabled
 		 */
@@ -195,24 +210,6 @@ public class ObdGatewayService extends Service {
 		//        ConfigActivity.IMPERIAL_UNITS_KEY, false);
 		//ArrayList<ObdCommand> cmds = ConfigActivity.getObdCommands(prefs);
 
-		/*
-		 * Establish Bluetooth connection
-		 * 
-		 * Because discovery is a heavyweight procedure for the Bluetooth
-		 * adapter, this method should always be called before attempting to
-		 * connect to a remote device with connect(). Discovery is not managed
-		 * by the Activity, but is run as a system service, so an application
-		 * should always call cancel discovery even if it did not directly
-		 * request a discovery, just to be sure. If Bluetooth state is not
-		 * STATE_ON, this API will return false.
-		 * 
-		 * see
-		 * http://developer.android.com/reference/android/bluetooth/BluetoothAdapter
-		 * .html#cancelDiscovery()
-		 */
-		Log.d(TAG, "Stopping Bluetooth discovery.");
-		btAdapter.cancelDiscovery();
-
 		Toast.makeText(this, "Starting OBD connection..", Toast.LENGTH_SHORT);
 
 		try {
@@ -226,6 +223,13 @@ public class ObdGatewayService extends Service {
 		}
 	}
 
+        private SerialPort getSerialPort() throws SecurityException, IOException, InvalidParameterException {
+            if (serialPort == null) {
+                /* Open the serial port */
+                serialPort = new SerialPort(new File(serialPortPath), serialPortBaudrate, 0);
+            }
+            return serialPort;
+        }
 	/**
 	 * Start and configure the connection to the OBD interface.
 	 * 
@@ -233,10 +237,6 @@ public class ObdGatewayService extends Service {
 	 */
 	private void startObdConnection() throws IOException {
 		Log.d(TAG, "Starting OBD connection..");
-
-		// Instantiate a BluetoothSocket for the remote device and connect it.
-		_sock = _dev.createRfcommSocketToServiceRecord(MY_UUID);
-		_sock.connect();
 
 		// Let's configure the connection.
 		Log.d(TAG, "Queing jobs for connection configuration..");
@@ -289,8 +289,8 @@ public class ObdGatewayService extends Service {
 					Log.d(TAG, "Job state is NEW. Run it..");
 
 					job.setState(ObdCommandJobState.RUNNING);
-					job.getCommand().run(_sock.getInputStream(),
-					        _sock.getOutputStream());
+					job.getCommand().run(serialPort.getInputStream(),
+					        serialPort.getOutputStream());
 				} else {
 					// log not new job
 					Log.e(TAG,
@@ -348,11 +348,9 @@ public class ObdGatewayService extends Service {
 		_isRunning.set(false);
 
 		// close socket
-		try {
-			if (_sock != null)
-			    _sock.close();
-		} catch (IOException e) {
-			Log.e(TAG, e.getMessage());
+		if (serialPort != null) {
+		    serialPort.close();
+		    serialPort = null;
 		}
 
 		// kill service

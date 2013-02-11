@@ -132,6 +132,7 @@ public class DiagnosticsActivity extends AccessibleActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(LogUtil.TAG, "Creating DiagnosticsActivity");
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.diagnostics_fragment);
 
@@ -155,7 +156,9 @@ public class DiagnosticsActivity extends AccessibleActivity {
         drivingScoreText.setText("86 %");
         RatingBar drivingScoreRating = (RatingBar) findViewById(R.id.drivingScoreRating);
         drivingScoreRating.setRating(3);
-        
+
+        Log.d(LogUtil.TAG, "Initialized UI");
+
         /*
          * Validate GPS service.
          */
@@ -167,11 +170,13 @@ public class DiagnosticsActivity extends AccessibleActivity {
                 // preRequisites = false;
                 showDialog(NO_GPS_ID);
         }
-    
+        Log.d(LogUtil.TAG, "Validated GPS service");    
+        
         /*
          * Validate Bluetooth service.
          */
         // Bluetooth device exists?
+        /*
         final BluetoothAdapter mBtAdapter = BluetoothAdapter
                         .getDefaultAdapter();
         if (mBtAdapter == null) {
@@ -184,6 +189,7 @@ public class DiagnosticsActivity extends AccessibleActivity {
                         showDialog(BLUETOOTH_DISABLED);
                 }
         }
+        */
     
         /*
          * Get Orientation sensor.
@@ -196,6 +202,7 @@ public class DiagnosticsActivity extends AccessibleActivity {
         } else {
                 orientSensor = sens.get(0);
         }
+        Log.d(LogUtil.TAG, "Getting orientation sensor");
 
         /*
          * Get update period
@@ -207,6 +214,7 @@ public class DiagnosticsActivity extends AccessibleActivity {
                     "Couldn't parse update_period '" + osmandSettings.UPDATE_PERIOD.get() + "' as a number.", Toast.LENGTH_LONG).show();
             updatePeriod = 2000;
         }
+        Log.d(LogUtil.TAG, "Getting update period");
         
         mListener = new IPostListener() {
             @Override
@@ -234,6 +242,7 @@ public class DiagnosticsActivity extends AccessibleActivity {
                     ltft = ((FuelTrimObdCommand) job.getCommand()).getValue();
                 }
                 
+                Log.d(LogUtil.TAG, "Adding diagnostic data to track");
                 long currentTime = System.currentTimeMillis();
                 savingTrackHelper.insertDiagnosticData(command.getCommand(), command.getResult(), currentTime, osmandSettings);
 
@@ -241,6 +250,7 @@ public class DiagnosticsActivity extends AccessibleActivity {
                 obdStats.append(cmdName + "\t\t:\t" + cmdResult + "\n");
             }
         };
+        Log.d(LogUtil.TAG, "Set up listener for OBD commands");
 
         try {
             // validate app pre-requisites
@@ -248,6 +258,7 @@ public class DiagnosticsActivity extends AccessibleActivity {
                 /*
                  * Prepare service and its connection
                  */
+                Log.d(LogUtil.TAG, "Preparing service and connection");
                 mServiceIntent = new Intent("eu.lighthouselabs.obd.reader.io.ObdGatewayService");
                 //mServiceIntent = new Intent(this, ObdGatewayService.class);
                 addObdSettingsToBundle(mServiceIntent);
@@ -258,6 +269,8 @@ public class DiagnosticsActivity extends AccessibleActivity {
                 Log.d(LogUtil.TAG, "Binding service..");
                 boolean bindResult = bindService(mServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
                 Log.d(LogUtil.TAG, "Binding result " + bindResult);
+            } else {
+                Log.d(LogUtil.TAG, "prerequisites not satisfied");                
             }
         } catch (Exception e) {
             Log.d(LogUtil.TAG, "exception binding service: " + e);
@@ -398,19 +411,19 @@ public class DiagnosticsActivity extends AccessibleActivity {
     }
     
     private void queueCommands() {
-        addJobToQueue(new SpeedObdCommand());
-        addJobToQueue(new FuelEconomyObdCommand());
-        addJobToQueue(new FuelLevelObdCommand());
+        //addJobToQueue(new SpeedObdCommand());
+        //addJobToQueue(new FuelEconomyObdCommand());
+        //addJobToQueue(new FuelLevelObdCommand());
         addJobToQueue(new EngineCoolantTemperatureObdCommand());
         addJobToQueue(new EngineRPMObdCommand());
 
-        addJobToQueue(new AmbientAirTemperatureObdCommand());
-        addJobToQueue(new MassAirFlowObdCommand());
-        addJobToQueue(new FuelTrimObdCommand(FuelTrim.LONG_TERM_BANK_1));
-        addJobToQueue(new FuelTrimObdCommand(FuelTrim.LONG_TERM_BANK_2));
-        addJobToQueue(new FuelTrimObdCommand(FuelTrim.SHORT_TERM_BANK_1));
-        addJobToQueue(new FuelTrimObdCommand(FuelTrim.SHORT_TERM_BANK_2));
-        addJobToQueue(new CommandEquivRatioObdCommand());
+        //addJobToQueue(new AmbientAirTemperatureObdCommand());
+        //addJobToQueue(new MassAirFlowObdCommand());
+        //addJobToQueue(new FuelTrimObdCommand(FuelTrim.LONG_TERM_BANK_1));
+        //addJobToQueue(new FuelTrimObdCommand(FuelTrim.LONG_TERM_BANK_2));
+        //addJobToQueue(new FuelTrimObdCommand(FuelTrim.SHORT_TERM_BANK_1));
+        //addJobToQueue(new FuelTrimObdCommand(FuelTrim.SHORT_TERM_BANK_2));
+        //addJobToQueue(new CommandEquivRatioObdCommand());
     }
 
 }

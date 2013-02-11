@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:id="@+id/linearLayout1"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <LinearLayout android:id="@+id/phoneFavoritesButton"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        style="?android:attr/buttonStyle">
+
+        <ImageView
+            android:id="@+id/phoneFavoritesIcon"
+            android:contentDescription="@string/phone_favorites"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/phone_favorites_icon" 
+            android:layout_weight="1" 
+            android:layout_gravity="left|center_vertical"/>
+
+        <TextView
+            android:id="@+id/phoneFavoritesText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/phone_favorites"
+            android:textAppearance="?android:attr/textAppearanceLarge" 
+            android:layout_weight="5" 
+            android:paddingLeft="20dp"/>
+
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/phoneContactsButton"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        style="?android:attr/buttonStyle">
+
+        <ImageView
+            android:id="@+id/phoneContactsIcon"
+            android:contentDescription="@string/phone_contacts"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/phone_contacts_icon"
+            android:layout_weight="1" 
+            android:layout_gravity="left|center_vertical"/>
+
+        <TextView
+            android:id="@+id/phoneContactsText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/phone_contacts"
+            android:textAppearance="?android:attr/textAppearanceLarge" 
+            android:layout_weight="5" 
+            android:paddingLeft="20dp" />
+
+    </LinearLayout>
+    
+    <LinearLayout android:id="@+id/phoneRecentButton"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        style="?android:attr/buttonStyle">
+
+        <ImageView
+            android:contentDescription="@string/phone_recent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" 
+            android:layout_gravity="left"/>
+
+        <TextView
+            android:id="@+id/phoneRecentText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/phone_recent"
+            android:textAppearance="?android:attr/textAppearanceLarge" 
+            android:layout_weight="5" 
+            android:paddingLeft="20dp" />
+
+    </LinearLayout>
+    
+    <LinearLayout android:id="@+id/phonePlaceCallButton"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        style="?android:attr/buttonStyle">
+
+        <ImageView
+            android:contentDescription="@string/phone_place_call"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" 
+            android:layout_gravity="left"/>
+
+        <TextView
+            android:id="@+id/phonePlaceCallText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/phone_place_call"
+            android:textAppearance="?android:attr/textAppearanceLarge" 
+            android:layout_weight="5" 
+            android:paddingLeft="20dp" />
+
+    </LinearLayout>
+
+    <LinearLayout android:id="@+id/phoneSettingsButton"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        style="?android:attr/buttonStyle">
+
+        <ImageView
+            android:contentDescription="@string/phone_settings"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" 
+            android:layout_gravity="left"/>
+
+        <TextView
+            android:id="@+id/phoneSettingsText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/phone_settings"
+            android:textAppearance="?android:attr/textAppearanceLarge" 
+            android:layout_weight="5" 
+            android:paddingLeft="20dp" />
+
+	</LinearLayout>
+	
+    <LinearLayout android:id="@+id/gapBelow"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2">
+    </LinearLayout>
+    
+    <!-- 
+    <Button android:id="@+id/phoneFavoritesButton" 
+        android:text="@string/phone_favorites" 
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:drawableLeft="@drawable/phone_favorites_icon" 
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:layout_weight="1.0" 
+        android:padding="10dp"></Button>
+    <Button android:id="@+id/phoneContactsButton" 
+        android:text="@string/phone_contacts" 
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:drawableLeft="@drawable/phone_contacts_icon" 
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:layout_weight="1.0" 
+        android:padding="10dp"></Button>
+    <Button android:id="@+id/phoneRecentButton" 
+        android:text="@string/phone_recent" 
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:layout_weight="1.0" 
+        android:padding="10dp"></Button>
+    <Button android:id="@+id/phonePlaceCallButton" 
+        android:text="@string/phone_placecall" 
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:layout_weight="1.0" 
+        android:padding="10dp"></Button>
+    <Button android:id="@+id/phoneSettingsButton" 
+        android:text="@string/phone_settings" 
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:layout_weight="1.0" 
+        android:padding="10dp"></Button>
+     -->
+</LinearLayout>
