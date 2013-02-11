@@ -1132,7 +1132,7 @@
 	<string name="follow_mode_compass">Compass</string>
 	<string name="follow_mode_bearing">Bearing</string>
 	<string name="follow_mode_free_scroll">Free Scroll</string>
-	<string name="enter_address">Enter address</string>
+	<string name="enter_address">Enter address or name of destination</string>
 	<string name="overall_driving_stats">OBD Stats</string>
 	<string name="fuel_economy">Fuel Economy</string>
 	<string name="current_driving_stats">Current Readings</string>

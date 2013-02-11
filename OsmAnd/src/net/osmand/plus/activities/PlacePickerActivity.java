@@ -33,7 +33,9 @@ public class PlacePickerActivity extends Activity {
         
         // Makes the place picker full screen 
         getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
-        
+       
+        // 07-02-2013: Removing close button action
+        /*
         View closeButton = findViewById(R.id.place_picker_close);
         closeButton.setOnClickListener(new OnClickListener() {
                 @Override
@@ -41,6 +43,7 @@ public class PlacePickerActivity extends Activity {
                     PlacePickerActivity.this.finish();
                 }
         });
+        */
         
         // TODO(natashaj): how to cancel when touched outside?
     }

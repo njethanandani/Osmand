@@ -15,17 +15,17 @@ public class MusicActivity extends AccessibleActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.music_fragment);
+        setContentView(R.layout.music_fragment);        
         
-        View backToMainMenuButton = findViewById(R.id.musicToMenuButton);
-        backToMainMenuButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent newIntent = new Intent(MusicActivity.this, MainMenuActivity.class);
-                newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(newIntent);
-            }
-        });
+        // View backToMainMenuButton = findViewById(R.id.musicToMenuButton);
+        // backToMainMenuButton.setOnClickListener(new OnClickListener() {
+        //    @Override
+        //    public void onClick(View v) {
+        //        Intent newIntent = new Intent(MusicActivity.this, MainMenuActivity.class);
+        //        newIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        //        startActivity(newIntent);
+        //    }
+        //});
     }
 
 }
