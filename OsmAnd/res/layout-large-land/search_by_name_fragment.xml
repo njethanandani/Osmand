@@ -2,21 +2,26 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:orientation="vertical" android:layout_width="fill_parent"
 	android:layout_height="fill_parent" android:background="@color/color_light_gray">
-	<LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content" android:baselineAligned="false">
+	<LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content" 
+	    android:baselineAligned="false" android:layout_marginTop="5dp" android:layout_marginLeft="5dp">
 
 		<EditText
 		    android:id="@+id/SearchFilter"
 		    android:layout_width="0dp"
 		    android:layout_height="wrap_content"
-		    android:layout_marginRight="5dp"
-		    android:layout_weight="1"
+		    android:layout_marginRight="3dp"
+		    android:layout_weight="4"
 		    android:hint="@string/enter_address"
 		    android:imeOptions="actionDone"
 		    android:text="" />
 
 		<Button android:text="@string/search_POI_level_btn"   
-				android:id="@+id/SearchPOILevelButton" android:layout_height="wrap_content" android:layout_width="0dp" android:layout_weight="1" android:layout_marginRight="5dp"/>
+				android:id="@+id/SearchPOILevelButton" android:layout_height="wrap_content" android:layout_width="0dp" android:layout_weight="1" android:layout_marginRight="3dp"/>
+		
+		<!-- Commenting out the text for the search radious -->		
+		<!--   
 		<TextView android:layout_width="wrap_content" android:text="" android:id="@+id/SearchAreaText" android:layout_height="wrap_content"/>
+		-->
 		<!-- 
 		<ImageButton android:src="@android:drawable/ic_input_get" android:text="@string/show_poi_on_map" android:id="@+id/ShowFilter"
 				android:layout_height="wrap_content" android:layout_width="wrap_content" android:contentDescription="@string/search_poi_filter"/>

@@ -107,7 +107,7 @@ public class SearchPOIActivity extends OsmandListActivity implements SensorEvent
 	private ImageButton showFilter;
 	private PoiFilter filter;
 	private AmenityAdapter amenityAdapter;
-	private TextView searchArea;
+	// private TextView searchArea;
 	private EditText searchFilter;
 	private View searchFilterLayout;
 	
@@ -138,7 +138,7 @@ public class SearchPOIActivity extends OsmandListActivity implements SensorEvent
 		
 		uiHandler = new Handler();
 		searchPOILevel = (Button) findViewById(R.id.SearchPOILevelButton);
-		searchArea = (TextView) findViewById(R.id.SearchAreaText);
+		// searchArea = (TextView) findViewById(R.id.SearchAreaText);
 		searchFilter = (EditText) findViewById(R.id.SearchFilter);
 		searchFilterLayout = findViewById(R.id.SearchFilterLayout);
 		showOnMap = (ImageButton) findViewById(R.id.ShowOnMap);
@@ -307,7 +307,7 @@ public class SearchPOIActivity extends OsmandListActivity implements SensorEvent
 		showOnMap.setVisibility(View.VISIBLE);
 		
 		if (filter != null) {
-			searchArea.setText(filter.getSearchArea());
+			// searchArea.setText(filter.getSearchArea());
 			updateSearchPoiTextButton();
 			
 			setLocation(location);
@@ -601,7 +601,7 @@ public class SearchPOIActivity extends OsmandListActivity implements SensorEvent
 		@Override
 		protected void onPreExecute() {
 			findViewById(R.id.ProgressBar).setVisibility(View.VISIBLE);
-			findViewById(R.id.SearchAreaText).setVisibility(View.GONE);
+			// findViewById(R.id.SearchAreaText).setVisibility(View.GONE);
 			searchPOILevel.setEnabled(false);
 			if(request.type == SearchAmenityRequest.NEW_SEARCH_INIT){
 				amenityAdapter.clear();
@@ -619,7 +619,7 @@ public class SearchPOIActivity extends OsmandListActivity implements SensorEvent
 		@Override
 		protected void onPostExecute(List<Amenity> result) {
 			findViewById(R.id.ProgressBar).setVisibility(View.GONE);
-			findViewById(R.id.SearchAreaText).setVisibility(View.VISIBLE);
+			// findViewById(R.id.SearchAreaText).setVisibility(View.VISIBLE);
 			searchPOILevel.setEnabled(filter.isSearchFurtherAvailable());
 			searchPOILevel.setText(R.string.search_POI_level_btn);
 			if (isNameFinderFilter()) {
@@ -634,7 +634,7 @@ public class SearchPOIActivity extends OsmandListActivity implements SensorEvent
 			} else {
 				amenityAdapter.setNewModel(result, searchFilter.getText().toString());
 			}
-			searchArea.setText(filter.getSearchArea());
+			// searchArea.setText(filter.getSearchArea());
 		}
 		
 		@Override

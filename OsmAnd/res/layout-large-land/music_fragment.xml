@@ -1,8 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-		android:layout_width="wrap_content" 
-		android:layout_height="wrap_content"
-		android:orientation="vertical">		
-	<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Music TODO" />
-	<ImageButton android:id="@+id/musicToMenuButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/map_btn_menu" android:layout_gravity="bottom|left"/>
+		android:layout_width="fill_parent" 
+		android:layout_height="fill_parent"
+		android:orientation="vertical"
+ 		android:background="@color/color_white"		
+		>		
+	<!--  TODO: 07-02-2013: All text for buttons is currently in the image, not suited for localization. Needs to be separated out into image + text like earlier -->
+	<TableLayout android:layout_width="fill_parent" android:layout_height="wrap_content">
+		<TableRow android:layout_height = "200dp" android:layout_marginTop="60dp">
+			<LinearLayout android:layout_weight="1" android:layout_height="fill_parent"/>
+		    <LinearLayout android:id="@+id/RadioButton" android:focusable="true" android:clickable="true" android:layout_weight="0" android:layout_height="wrap_content">
+ 				<ImageView
+				android:src="@drawable/button_icon_radio"
+				android:layout_gravity="center"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"/>
+ 			</LinearLayout>
+			<LinearLayout android:layout_weight="1" android:layout_height="fill_parent"/>
+			<LinearLayout android:id="@+id/USBButton" android:focusable="true" android:clickable="true" android:layout_weight="0" android:layout_height="wrap_content">
+ 				<ImageView
+				android:src="@drawable/button_icon_usb"
+				android:layout_gravity="center"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"/>
+ 			</LinearLayout>
+			<LinearLayout android:layout_weight="1" android:layout_height="fill_parent"/>
+			<LinearLayout android:id="@+id/LineInButton" android:focusable="true" android:clickable="true" android:layout_weight="0" android:layout_height="wrap_content">
+				<ImageView
+				android:src="@drawable/button_icon_linein"
+				android:layout_gravity="center"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"/>	
+			</LinearLayout>
+			<LinearLayout android:layout_weight="1" android:layout_height="fill_parent"/>
+		</TableRow>
+		<TableRow android:layout_height = "200dp" android:layout_marginTop = "45dp">
+			<LinearLayout android:layout_weight="1" android:layout_height="fill_parent"/>
+		    <LinearLayout android:id="@+id/OtherAudioButton" android:focusable="true" android:clickable="true" android:layout_weight="0" android:layout_height="wrap_content">
+				<ImageView
+				android:src="@drawable/button_icon_other_audio"
+				android:layout_gravity="center"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"/>
+			</LinearLayout>
+			<LinearLayout android:layout_weight="1" android:layout_height="fill_parent"/>
+			<LinearLayout android:id="@+id/NowPlayingButton" android:focusable="true" android:clickable="true" android:layout_weight="0" android:layout_height="wrap_content">
+				<ImageView
+				android:src="@drawable/button_icon_now_playing"
+				android:layout_gravity="center"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"/>
+			 </LinearLayout> 		
+			<LinearLayout android:layout_weight="1" android:layout_height="fill_parent"/>
+			<LinearLayout android:id="@+id/AudioSettingsButton" android:focusable="true" android:clickable="true" android:layout_weight="0" android:layout_height="wrap_content">
+				<ImageView
+				android:src="@drawable/button_icon_audio_settings"
+				android:layout_gravity="center"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"/>
+			 </LinearLayout>
+			<LinearLayout android:layout_weight="1" android:layout_height="fill_parent"/>
+		</TableRow>
+	</TableLayout>			
 </LinearLayout>

@@ -31,7 +31,6 @@
 
 	<renderingAttribute name="defaultColor">
 		<filter noPolygons="true" attrColorValue="#00ffffff"/>
-		<filter nightMode="true" attrColorValue="#003333"/>
 		<filter attrColorValue="#f5f5e5"/>
 	</renderingAttribute>
 
@@ -126,11 +125,11 @@
 			<filter tag="boundary" value="" order="62"/>
 				 
 			<!-- Highways: 35-57, bridges 66+/-1 -->
-			 <filter layer="1" tag="highway" value="motorway" order="66" shadowLevel="64"/>
+			 <filter layer="1" tag="highway" value="motorway" order="66" shadowLevel="1"/>
 			<filter tag="highway" value="motorway" order="57" shadowLevel="1"/>
-			 <filter layer="1" tag="highway" value="trunk" order="66" shadowLevel="64"/>
+			 <filter layer="1" tag="highway" value="trunk" order="66" shadowLevel="1"/>
 			<filter tag="highway" value="trunk" order="56" shadowLevel="1"/>
-			 <filter layer="1" tag="highway" value="primary" order="66" shadowLevel="64"/>
+			 <filter layer="1" tag="highway" value="primary" order="66" shadowLevel="1"/>
 			<filter tag="highway" value="primary" order="55" shadowLevel="1"/>
 			 <filter layer="1" tag="highway" value="secondary" order="66" shadowLevel="1"/>
 			<filter tag="highway" value="secondary" order="54" shadowLevel="1"/>
@@ -153,7 +152,6 @@
 				<filter tag="highway" value="pedestrian" order="50"/>
 				<groupFilter>
 					 <filter minzoom="14" shadowLevel="1"/>
-					 <filter hmRendered="true" shadowLevel="1"/>
 				</groupFilter>
 			</group>
 
@@ -361,7 +359,6 @@
 				<filter minzoom="17" maxzoom="17" textSize="16"/>
 				<filter minzoom="18" textSize="18"/>
 				<groupFilter textOnPath="true" textDy="-7">
-					<filter nightMode="true" textColor="#ffffff"/>
 					<filter nightMode="false" textColor="#000000"/>
 				</groupFilter>
 			</groupFilter>
@@ -383,7 +380,6 @@
 			<filter minzoom="4" textSize="20" textBold="true" textDy="1" textWrapWidth="20" tag="place" value="city" textOrder="4"/>
 			<filter minzoom="6" textSize="16" textBold="true" textDy="1" textWrapWidth="20" tag="place" value="town" textOrder="5"/>
 			<filter minzoom="11" textSize="14" tag="place" value="village" textOrder="10"/>
-			<groupFilter nightMode="true" textColor="#ffffff"/>
 		</group>
 		<group textColor="#777777">
 			<filter minzoom="11" textSize="13" tag="place" value="hamlet" textOrder="12"/>
@@ -391,16 +387,12 @@
 			<filter minzoom="11" textSize="13" tag="place" value="locality" textOrder="15"/>
 			<filter minzoom="11" textSize="14" tag="place" value="island" textOrder="10"/>
 			<filter minzoom="10" textSize="14" textColor="#99cc99" textBold="true" textWrapWidth="14" tag="boundary" value="national_park" textOrder="10"/>
-			<groupFilter nightMode="true" textColor="#D7D7D7"/>
 		</group>
 
 		<!-- Natural -->
 		<filter contourLines="11" nightMode="false" minzoom="13" textSize="12" textColor="#444444" textOnPath="true" tag="contour" value=""/>
 		<filter contourLines="12" nightMode="false" minzoom="13" textSize="12" textColor="#444444" textOnPath="true" tag="contour" value=""/>
 		<filter contourLines="13" nightMode="false" minzoom="13" textSize="12" textColor="#444444" textOnPath="true" tag="contour" value=""/>
-			<filter contourLines="11" nightMode="true" minzoom="13" textSize="12" textColor="#777777" textOnPath="true" tag="contour" value=""/>
-			<filter contourLines="12" nightMode="true" minzoom="13" textSize="12" textColor="#777777" textOnPath="true" tag="contour" value=""/>
-			<filter contourLines="13" nightMode="true" minzoom="13" textSize="12" textColor="#777777" textOnPath="true" tag="contour" value=""/>
 		<filter minzoom="13" textSize="12" textColor="#000000" textWrapWidth="10" tag="natural" value="wood" textOrder="10"/>
 		<filter minzoom="15" textSize="12" textColor="#09dd09" textWrapWidth="15" tag="natural" value="park" textOrder="10"/>
 		<filter minzoom="14" textSize="12" textColor="#6699cc" textHaloRadius="1" textWrapWidth="20" tag="natural" value="beach" textOrder="10"/>
@@ -410,7 +402,6 @@
 			<filter minzoom="17" textSize="16" textHaloRadius="1" textDy="7" tag="natural" value="peak" textOrder="15"/>
 			<filter minzoom="16" textSize="12" textDy="7" textWrapWidth="20" tag="natural" value="cave_entrance" textOrder="15"/>
 			<groupFilter>
-				<filter nightMode="true" textColor="#CC3300"/>
 				<filter nightMode="false" textColor="#654321"/>
 			</groupFilter>
 		</group>
@@ -596,9 +587,7 @@
 	<!-- PRIORITY Input to filter : tag, value, zoom [minzoom, maxzoom] -->
 	<point>
 		<!-- Locations -->
-			<filter nightMode="true" minzoom="4" icon="city_night" tag="place" value="city"/>
 		<filter minzoom="4" icon="city" tag="place" value="city"/>
-			<filter nightMode="true" minzoom="6" icon="town_night" tag="place" value="town"/>
 		<filter minzoom="6" icon="town" tag="place" value="town"/>
 
 		<!-- Traffic -->
@@ -720,7 +709,6 @@
 		<filter minzoom="17" icon="shop_mobile_phone" tag="shop" value="mobile_phone"/>
 
 		<!-- Nature -->
-			<filter nightMode="true" minzoom="11" icon="peak_night" tag="natural" value="peak"/>
 		<filter minzoom="11" icon="peak" tag="natural" value="peak"/>
 		<filter minzoom="17" icon="cave_entrance" tag="natural" value="cave_entrance"/>
 		<filter minzoom="17" icon="spring" tag="natural" value="spring"/>
@@ -793,9 +781,7 @@
 			<filter tag="highway" value="road"/>
 			<filter tag="highway" value="unclassified"/>
 			<filter tag="highway" value="residential"/>
-			<groupFilter color="#ffffff" color_2="#bababa" minzoom="12" strokeWidth_2="1">
-				<filter nightMode="true" color="#9f9f9f"/>
-			</groupFilter>
+			<groupFilter color="#ffffff" color_2="#bababa" minzoom="12" strokeWidth_2="1"/>
 		</group>
 
 		<group>
@@ -811,19 +797,10 @@
 	    <!-- for 'no polygons' -->
 	    <group>
 		<!-- Polygon railway -->
-		<filter minzoom="11" tag="railway" value="station" color="#d4aaaa">
-			<filter nightMode="true" color="#560000"/>
-		</filter>
-		<filter minzoom="11" tag="public_transport" value="station" color="#d4aaaa">
-			<filter nightMode="true" color="#560000"/>
-		</filter>
-		<filter minzoom="15" tag="public_transport" value="platform" color="#bababa">
-			<filter nightMode="true" color="#560000"/>
-		</filter>
-		<filter minzoom="15" tag="railway" value="platform" color="#bababa">
-			<filter nightMode="true" color="#560000"/>
-		</filter>
-
+		<filter minzoom="11" tag="railway" value="station" color="#d4aaaa"/>
+		<filter minzoom="11" tag="public_transport" value="station" color="#d4aaaa"/>
+		<filter minzoom="15" tag="public_transport" value="platform" color="#bababa"/>
+		<filter minzoom="15" tag="railway" value="platform" color="#bababa"/>
 
 		<!-- Polygon waterways -->
 		<group>
@@ -831,9 +808,7 @@
 			<filter minzoom="10" tag="waterway" value="canal"/>
 			<filter minzoom="10" tag="waterway" value="dock"/>
 			<filter minzoom="10" tag="waterway" value="mill_pond"/>
-			<groupFilter color="#b5d0d0">
-				<filter nightMode="true" color="#330099"/>
-			</groupFilter>
+			<groupFilter color="#b5d0d0"/>
 		</group>
 
 
@@ -843,12 +818,8 @@
 			<filter minzoom="12" tag="aeroway" value="airport"/>
 			<groupFilter color="#80cccccc"/>
 		</group>
-		<filter minzoom="14" tag="aeroway" value="terminal" color="#cc99ff">
-			<filter nightMode="true" color="#560000"/>
-		</filter>
-		<filter minzoom="13" tag="aeroway" value="apron" color="#e9d1ff">
-			<filter nightMode="true" color="#bababa"/>
-		</filter>
+		<filter minzoom="14" tag="aeroway" value="terminal" color="#cc99ff"/>
+		<filter minzoom="13" tag="aeroway" value="apron" color="#e9d1ff"/>
 
 
 		<!-- Water, night color 330099 -->
@@ -998,11 +969,10 @@
 				<groupFilter layer="-1" pathEffect="4_4" cap="BUTT"/>
 
 				<!-- Bridges -->
-				<groupFilter layer="1">
-					<filter minzoom="16" maxzoom="16"/>
-					<filter minzoom="17" maxzoom="17"/>
-					<filter minzoom="18"/>
-					<groupFilter nightMode="true" color_0="#ffffff"/>
+				<groupFilter layer="1" color_0="#777777">
+					<filter minzoom="16" maxzoom="16" strokeWidth_0="11"/>
+					<filter minzoom="17" maxzoom="17" strokeWidth_0="12"/>
+					<filter minzoom="18" strokeWidth_0="14"/>
 				</groupFilter>
 			</groupFilter>
 		</group>
@@ -1025,11 +995,10 @@
 				<groupFilter layer="-1" pathEffect="4_4" cap="BUTT"/>
 
 				<!-- Bridges -->
-				<groupFilter layer="1" color_0="#404040">
-					<filter minzoom="16" maxzoom="16" strokeWidth_0="10" />
-					<filter minzoom="17" maxzoom="17" strokeWidth_0="11" />
-					<filter minzoom="18" strokeWidth_0="12" />
-					<groupFilter nightMode="true" color_0="#ffffff"/>
+				<groupFilter layer="1" color_0="#777777">
+					<filter minzoom="16" maxzoom="16" strokeWidth_0="8"/>
+					<filter minzoom="17" maxzoom="17" strokeWidth_0="10"/>
+					<filter minzoom="18" strokeWidth_0="13"/>
 				</groupFilter>
 			</groupFilter>
 		</group>
@@ -1049,11 +1018,10 @@
 				<groupFilter layer="-1" pathEffect="4_4" cap="BUTT"/>
 				
 				<!-- Bridges -->
-				<groupFilter layer="1" color_0="#404040">
-					<filter minzoom="16" maxzoom="16" strokeWidth_0="10" />
-					<filter minzoom="17" maxzoom="17" strokeWidth_0="11" />
-					<filter minzoom="18" strokeWidth_0="12" />
-					<groupFilter nightMode="true" color_0="#ffffff"/>
+				<groupFilter layer="1" color_0="#777777">
+					<filter minzoom="16" maxzoom="16" strokeWidth_0="12" />
+					<filter minzoom="17" maxzoom="17" strokeWidth_0="13" />
+					<filter minzoom="18" strokeWidth_0="14" />
 				</groupFilter>
 			</groupFilter>
 		</group>
@@ -1073,7 +1041,7 @@
 				<groupFilter layer="-1" pathEffect="4_4" cap="BUTT"/>
 
 				<!-- Bridges --> 
-				<groupFilter layer="1">
+				<groupFilter layer="1" color_0="#969696">
 					<filter minzoom="16" maxzoom="16" strokeWidth_0="7" />
 					<filter minzoom="17" maxzoom="17" strokeWidth_0="8" />
 					<filter minzoom="18" strokeWidth_0="10" />
@@ -1125,7 +1093,6 @@
 					<filter minzoom="16" maxzoom="16" strokeWidth_0="4" />
 					<filter minzoom="17" maxzoom="17" strokeWidth_0="5"/>
 					<filter minzoom="18" strokeWidth_0="6" />
-					<groupFilter nightMode="true" color_0="#ffffff"/>
 			 	</groupFilter>
 				<groupFilter minzoom="15" additional="access=no" color_3="#F7D4D4" strokeWidth_3="2" pathEffect_3="10_3"/> 
 				<groupFilter minzoom="15" additional="access=private" color_3="#F7D4D4" strokeWidth_3="2" pathEffect_3="10_3"/>
@@ -1267,7 +1234,6 @@
 			</group>
 			<!-- Waterway color -->
 			<groupFilter color="#b5d0d0" color_2="#ffffff">
-				<filter nightMode="true" color="#330099" color_2="#7340D9"/>
 			</groupFilter>
 		</group>
 
