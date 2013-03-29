@@ -1,9 +1,9 @@
 package pinpoint.dash.phone.fragments;
 
 import pinpoint.dash.phone.R;
-import pinpoint.dash.phone.fragments.TabFragment;
+import pinpoint.dash.phone.fragments.PhoneTabFragment;
 
-public class PhoneFavoritesFragment extends TabFragment {
+public class PhoneFavoritesFragment extends PhoneTabFragment {
     public PhoneFavoritesFragment() {
     	super(PhoneMenuFragment.FAVORITES_TAB);
     }

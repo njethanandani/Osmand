@@ -1,5 +1,6 @@
 package pinpoint.dash.phone.fragments;
 
+import pinpoint.dash.phone.activities.PhoneActivity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
@@ -11,9 +12,9 @@ import android.view.ViewGroup;
  * This is the secondary fragment, displaying the details of a particular
  * item.
  */
-public abstract class TabFragment extends Fragment {
+public abstract class PhoneTabFragment extends Fragment {
 
-    public TabFragment(int index) {
+    public PhoneTabFragment(int index) {
         Bundle args = new Bundle();
         args.putInt("index", index);
         setArguments(args);
@@ -24,7 +25,11 @@ public abstract class TabFragment extends Fragment {
     }
     
     public abstract int getResource();
-
+    
+    protected PhoneActivity getPhoneActivity() {
+        return (PhoneActivity) getActivity();
+    }
+    
     public void show(int resourceId) {
         // Execute a transaction, replacing any existing fragment
         // with this one inside the frame.

@@ -3,6 +3,7 @@
 	<name>DashPhone</name>
 	<comment></comment>
 	<projects>
+		<project>VCardUtils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

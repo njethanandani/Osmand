@@ -1,9 +1,9 @@
 package pinpoint.dash.phone.fragments;
 
 import pinpoint.dash.phone.R;
-import pinpoint.dash.phone.fragments.TabFragment;
+import pinpoint.dash.phone.fragments.PhoneTabFragment;
 
-public class PhoneRecentCallsFragment extends TabFragment {
+public class PhoneRecentCallsFragment extends PhoneTabFragment {
     public PhoneRecentCallsFragment() {
     	super(PhoneMenuFragment.RECENT_TAB);
     }

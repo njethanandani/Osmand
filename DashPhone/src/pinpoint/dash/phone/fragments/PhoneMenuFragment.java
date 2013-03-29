@@ -19,6 +19,7 @@ public class PhoneMenuFragment extends Fragment {
     public static final int RECENT_TAB = 2;
     public static final int PLACE_CALL_TAB = 3;
     public static final int SETTINGS_TAB = 4;
+    public static final int CONTACT_DETAILS_TAB = 10;
     private static int DEFAULT_TAB = 0;
 
     int mCurrentSelectedTab = 0;
@@ -85,9 +86,9 @@ public class PhoneMenuFragment extends Fragment {
      * Helper function to show the details of a selected item, by
      * displaying a fragment in-place in the current UI.
      */
-    void showDetails(int tabIndex) {
+    public void showDetails(int tabIndex) {
         // Check what fragment is currently shown, replace if needed.
-        TabFragment tab = (TabFragment)
+        PhoneTabFragment tab = (PhoneTabFragment)
                 getFragmentManager().findFragmentById(R.id.Details);
         if (tab == null || tab.getShownIndex() != tabIndex) {
         	switch (tabIndex) {
@@ -105,6 +106,9 @@ public class PhoneMenuFragment extends Fragment {
                     break;
                 case SETTINGS_TAB:
                     tab = new PhoneSettingsFragment();
+                    break;
+                case CONTACT_DETAILS_TAB:
+                    tab = new ContactDetailsFragment();
                     break;
         	}
             // Execute a transaction, replacing any existing fragment

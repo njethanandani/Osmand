@@ -17,16 +17,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import pinpoint.dash.phone.R;
 import pinpoint.dash.phone.activities.PhoneActivity;
-import pinpoint.dash.phone.fragments.TabFragment;
-import pinpoint.dash.phone.model.Phone;
+import pinpoint.dash.phone.fragments.PhoneTabFragment;
+import pinpoint.dash.phone.model.Device;
 
-public class PhoneSettingsFragment extends TabFragment {
+public class PhoneSettingsFragment extends PhoneTabFragment {
     
     private static final int REQUEST_BT_SETTINGS = 1;
     
     private TextView messageLabel;
     private ListView listView;
-    private ArrayAdapter<Phone> devicesArrayAdapter;
+    private ArrayAdapter<Device> devicesArrayAdapter;
 
     public PhoneSettingsFragment() {
     	super(PhoneMenuFragment.SETTINGS_TAB);
@@ -43,27 +43,24 @@ public class PhoneSettingsFragment extends TabFragment {
     @Override
     public void onStart() {
         super.onStart();
-        getPhoneActivity().setupBluetoothAdapter(true /*launchSystemSettings*/);
+        //getPhoneActivity().setupBluetoothAdapter(true /*launchSystemSettings*/);
         showPairedDevices();
     }
     
-    /*
-    @Override
-    public void onResume() {
-        super.onResume();
-        checkSelectedPhone(getPhoneActivity().getSelectedPhone());
-    }
-    */
-
     @Override
     public int getResource() {
         return R.layout.phone_settings_fragment;
     }
 
-    public void checkSelectedPhone(Phone selectedPhone) {
+    public void checkSelectedPhone(BluetoothDevice selectedPhone) {
         if (selectedPhone != null) {
-            int position = devicesArrayAdapter.getPosition(selectedPhone);
-            listView.setItemChecked(position, true);
+            for (int i = 0; i < devicesArrayAdapter.getCount(); i++) {
+                Device curr = devicesArrayAdapter.getItem(i);
+                if (curr.getAddress() == selectedPhone.getAddress()) {
+                    listView.setItemChecked(i, true);
+                    return;
+                }
+            }
         }
     }
 
@@ -82,43 +79,32 @@ public class PhoneSettingsFragment extends TabFragment {
     public void showPairedDevices() {
         devicesArrayAdapter.clear();
 
-        Set<BluetoothDevice> pairedDevices = getPhoneActivity().findPairedDevices();
-        if (pairedDevices == null) {
+        Set<BluetoothDevice> bondedDevices = getPhoneActivity().getBondedDevices();
+        if (bondedDevices == null || bondedDevices.size() == 0) {
+            messageLabel.setText(R.string.bluetooth_no_phones_found);
             return;
         }
 
-        boolean prevSelectedPhoneFound = false;
-        Phone selectedPhone = getPhoneActivity().getSelectedPhone();
-        if (pairedDevices.size() == 0) {
-            messageLabel.setText(R.string.bluetooth_no_phones_found);
-        } else {
-            for (BluetoothDevice device : pairedDevices) {
-                Phone phone = new Phone(device.getName(), device.getAddress());
-                // Add the name and address to an array adapter to show in a ListView
-                devicesArrayAdapter.add(phone);
-                if (!prevSelectedPhoneFound
-                        && selectedPhone != null
-                        && selectedPhone.getAddress().equalsIgnoreCase(device.getAddress())) {
-                    prevSelectedPhoneFound = true;
-                    messageLabel.setText(null);
-                }
+        boolean selectedDeviceFound = false;
+        int deviceIndex = 0;
+        BluetoothDevice selectedDevice = getPhoneActivity().getSelectedDevice();
+        for (BluetoothDevice btDevice : bondedDevices) {
+            devicesArrayAdapter.add(new Device(btDevice));
+            if (!selectedDeviceFound
+                    && selectedDevice != null
+                    && selectedDevice.getAddress().equalsIgnoreCase(btDevice.getAddress())) {
+                selectedDeviceFound = true;
+                listView.setItemChecked(deviceIndex, true);
+                messageLabel.setText(null);
             }
+            deviceIndex++;
+        }
 
-            // If previously selected phone is no longer paired, clear the setting.
-            if (prevSelectedPhoneFound) {
-                checkSelectedPhone(selectedPhone);
-            } else {
-                if (selectedPhone != null) {
-                    getPhoneActivity().setSelectedPhone(null);
-                }
-            }
+        if (!selectedDeviceFound) {
+            getPhoneActivity().setSelectedDevice(null);
         }
     }
-    
-    private PhoneActivity getPhoneActivity() {
-        return (PhoneActivity) getActivity();
-    }
-    
+
     private void initViews(View view) {
         messageLabel = (TextView) view.findViewById(R.id.phoneSettingsMessage);
         
@@ -132,7 +118,7 @@ public class PhoneSettingsFragment extends TabFragment {
             }
         });
         
-        devicesArrayAdapter = new ArrayAdapter<Phone>(this.getActivity(),
+        devicesArrayAdapter = new ArrayAdapter<Device>(this.getActivity(),
                 android.R.layout.simple_list_item_single_choice);
         listView = (ListView) view.findViewById(R.id.deviceList);
         listView.setAdapter(devicesArrayAdapter);
@@ -140,8 +126,8 @@ public class PhoneSettingsFragment extends TabFragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                     int position, long id) {
-                Phone selectedPhone = devicesArrayAdapter.getItem(position);
-                ((PhoneActivity)getActivity()).setSelectedPhone(selectedPhone);
+                Device selectedDevice = devicesArrayAdapter.getItem(position);
+                ((PhoneActivity)getActivity()).setSelectedDevice(selectedDevice.getBluetoothDevice());
             }
         });
     }

@@ -1,12 +1,16 @@
 package pinpoint.dash.phone.model;
 
-public class Phone {
+import android.bluetooth.BluetoothDevice;
+
+public class Device {
     private String name;
     private String address;
+    private BluetoothDevice btDevice;
     
-    public Phone(String name, String address) {
-        setName(name);
-        setAddress(address);
+    public Device(BluetoothDevice btDevice) {
+        setName(btDevice.getName());
+        setAddress(btDevice.getAddress());
+        setBluetoothDevice(btDevice);
     }
     
     public String getName() {
@@ -25,6 +29,14 @@ public class Phone {
         this.address = address;
     }
     
+    public BluetoothDevice getBluetoothDevice() {
+        return btDevice;
+    }
+    
+    public void setBluetoothDevice(BluetoothDevice btDevice) {
+        this.btDevice = btDevice;
+    }
+    
     @Override
     public String toString() {
         return getName() + "\n" + getAddress();
@@ -36,11 +48,11 @@ public class Phone {
             return true;
         }
         
-        if (!(o instanceof Phone)) {
+        if (!(o instanceof Device)) {
             return false;
         }
         
-        Phone other = (Phone) o;
+        Device other = (Device) o;
         return (getName() == null ? other.getName() == null
                 : getName().equals(other.getName())) &&
                (getAddress() == null ? other.getAddress() == null
