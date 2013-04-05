@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+//import pinpoint.dash.phone.core.AppSettings.CommonPreference;
+//import pinpoint.dash.phone.core.AppSettings.StringPreference;
+
 import net.osmand.Version;
 import net.osmand.access.AccessibilityMode;
 import net.osmand.access.AccessibleToast;
@@ -1328,6 +1331,10 @@ public class OsmandSettings {
 
 	public final OsmandPreference<Integer> NUMBER_OF_FREE_DOWNLOADS = new IntPreference("free_downloads", 0).makeGlobal();
 	
+	public final CommonPreference<String> SELECTED_DEVICE_NAME = new StringPreference("selected_device_name", null);
+
+	public final CommonPreference<String> SELECTED_DEVICE_ADDRESS = new StringPreference("selected_device_address", null);
+
 	public boolean checkFreeDownloadsNumberZero(){
 		if(!globalPreferences.contains(NUMBER_OF_FREE_DOWNLOADS.getId())){
 			NUMBER_OF_FREE_DOWNLOADS.set(0);

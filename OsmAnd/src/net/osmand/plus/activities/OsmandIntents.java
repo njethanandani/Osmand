@@ -33,8 +33,8 @@ public class OsmandIntents {
 		return LocalIndexesActivity.class;
 	}
 
-	public static Class<PhoneActivity> getPhoneActivity() {
-	    return PhoneActivity.class;
+	public static Class<pinpoint.dash.phone.activities.PhoneActivity> getPhoneActivity() {
+	    return pinpoint.dash.phone.activities.PhoneActivity.class;
 	}
 
         public static Class<MusicActivity> getMusicActivity() {

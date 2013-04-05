@@ -59,4 +59,5 @@
 	<color name="osmbug_opened">#C8FF0000</color> <!-- standard RED -->
 	<color name="osmbug_closed">#C800FF00</color> <!-- standard GREEN -->
 	
+    <color name="header_background">#BEE6F0</color>
 </resources>

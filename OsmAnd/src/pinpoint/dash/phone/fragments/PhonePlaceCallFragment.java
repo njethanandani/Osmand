@@ -1,0 +1,15 @@
+package pinpoint.dash.phone.fragments;
+
+import net.osmand.plus.R;
+import pinpoint.dash.phone.fragments.PhoneTabFragment;
+
+public class PhonePlaceCallFragment extends PhoneTabFragment {
+    public PhonePlaceCallFragment() {
+    	super(PhoneMenuFragment.PLACE_CALL_TAB);
+    }
+
+    @Override
+    public int getResource() {
+        return R.layout.phone_place_call_fragment;
+    }
+}
