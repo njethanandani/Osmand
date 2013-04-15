@@ -72,7 +72,8 @@ public class ObdGatewayService extends Service {
 	private AtomicBoolean _isQueueRunning = new AtomicBoolean(false);
 	private Long _queueCounter = 0L;
 
-	private String serialPortPath = "/dev/ttyO3";
+	//private String serialPortPath = "/dev/ttyO3";
+        private String serialPortPath = "/dev/ttyUSB1";
 	private int serialPortBaudrate = 38400;
 	private SerialPort serialPort = null;
 	
@@ -141,7 +142,7 @@ public class ObdGatewayService extends Service {
 	}
 	
 	private void startService() {
-		Log.d(TAG, "Starting service..");
+		Log.d(TAG, "Starting OBD Gateway service..");
 
 		/*
 		 * Retrieve preferences
@@ -170,7 +171,6 @@ public class ObdGatewayService extends Service {
                 /* Open the serial port */
                 try {
                     serialPort = getSerialPort();
-
                     /* Create a receiving thread */
                     //mReadThread = new ReadThread();
                     //mReadThread.start();
@@ -227,6 +227,7 @@ public class ObdGatewayService extends Service {
             if (serialPort == null) {
                 /* Open the serial port */
                 serialPort = new SerialPort(new File(serialPortPath), serialPortBaudrate, 0);
+                Log.d(TAG, "Successfully connected to serial port " + serialPortPath + "at baud rate " + serialPortBaudrate);
             }
             return serialPort;
         }
@@ -302,7 +303,7 @@ public class ObdGatewayService extends Service {
 			}
 
 			if (job != null) {
-				Log.d(TAG, "Job is finished.");
+				Log.d(TAG, "Job is finished. Name: " + job.getCommand().getName() + " Cmd: " + job.getCommand().getCommand() + " Result: " + job.getCommand().getResult());
 				job.setState(ObdCommandJobState.FINISHED);
 				_callback.stateUpdate(job);
 			}
