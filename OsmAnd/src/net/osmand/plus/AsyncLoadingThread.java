@@ -1,6 +1,7 @@
 package net.osmand.plus;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
@@ -60,7 +61,7 @@ public class AsyncLoadingThread extends Thread {
 		if (resourceManger.getMapTileDownloader() != null && resourceManger.getMapTileDownloader().isSomethingBeingDownloaded()) {
 			progress = BusyIndicator.STATUS_GREEN;
 		} else if (resourceManger.getContext().getRoutingHelper().isRouteBeingCalculated()) {
-			progress = BusyIndicator.STATUS_BLUE;
+			progress = BusyIndicator.STATUS_ORANGE;
 		} else if (!requests.isEmpty()) {
 			progress = BusyIndicator.STATUS_BLACK;
 		} else if (poiLoadRequest != null && poiLoadRequest.isRunning()) {
@@ -217,7 +218,8 @@ public class AsyncLoadingThread extends Thread {
 		public void finish() {
 			running = false;
 			// use downloader callback
-			for (IMapDownloaderCallback c : resourceManger.getMapTileDownloader().getDownloaderCallbacks()) {
+			ArrayList<IMapDownloaderCallback> ls = new ArrayList<IMapDownloaderCallback>(resourceManger.getMapTileDownloader().getDownloaderCallbacks());
+			for (IMapDownloaderCallback c : ls) {
 				c.tileDownloaded(null);
 			}
 		}

@@ -25,6 +25,16 @@
 #include "binaryRead.h"
 #include "textdraw.cpp"
 #include "mapObjects.h"
+#include "rendering.h"
+
+const int MAX_V = 75;
+
+struct MapDataObjectPrimitive {
+	MapDataObject* obj;
+	int typeInd;
+	float order;
+	int objectType;
+};
 
 
 void calcPoint(std::pair<int, int>  c, RenderingContext* rc)
@@ -224,7 +234,6 @@ void renderText(MapDataObject* obj, RenderingRuleSearchRequest* req, RenderingCo
 				rc->textToDraw.push_back(info);
 			}
 		}
-
 		it++;
 	}
 
@@ -360,6 +369,14 @@ void drawPolyline(MapDataObject* mObj, RenderingRuleSearchRequest* req, SkCanvas
 	if (!rendered || !updatePaint(req, paint, 0, 0, rc)) {
 		return;
 	}
+	int shadowColor = req->getIntPropertyValue(req->props()->R_SHADOW_COLOR);
+	int shadowRadius = req->getIntPropertyValue(req->props()->R_SHADOW_RADIUS);
+	if(drawOnlyShadow && shadowRadius == 0) {
+		return;
+	}
+	if(shadowColor == 0) {
+		shadowColor = rc->getShadowRenderingColor();
+	}
 	int oneway = 0;
 	if (rc->getZoom() >= 16 && pair.first == "highway") {
 		if (mObj->containsAdditional("oneway", "yes")) {
@@ -377,6 +394,7 @@ void drawPolyline(MapDataObject* mObj, RenderingRuleSearchRequest* req, SkCanvas
 	float prevx;
 	float prevy;
 	bool intersect = false;
+	int prevCross = 0;
 	for (; i < length; i++) {
 		calcPoint(mObj->points.at(i), rc);
 		if (i == 0) {
@@ -388,22 +406,22 @@ void drawPolyline(MapDataObject* mObj, RenderingRuleSearchRequest* req, SkCanvas
 			path.lineTo(rc->calcX, rc->calcY);
 		}
 		if (!intersect) {
-			if (rc->calcX >= 0 && rc->calcY >= 0 && rc->calcX < rc->getWidth()&& rc->calcY < rc->getHeight()) {
+			if (rc->calcX >= 0 && rc->calcY >= 0 && rc->calcX < rc->getWidth() && rc->calcY < rc->getHeight()) {
 				intersect = true;
-			}
-			if (!intersect && i > 0) {
-				if ((rc->calcX < 0 && prevx < 0) || (rc->calcY < 0 && prevy < 0) ||
-						(rc->calcX> rc->getWidth() && prevx > rc->getWidth())
-						|| (rc->calcY > rc->getHeight() && prevy > rc->getHeight())) {
-					intersect = false;
-				} else {
-					intersect = true;
+			} else {
+				int cross = 0;
+				cross |= (rc->calcX < 0 ? 1 : 0);
+				cross |= (rc->calcX > rc->getWidth() ? 2 : 0);
+				cross |= (rc->calcY < 0 ? 4 : 0);
+				cross |= (rc->calcY > rc->getHeight() ? 8 : 0);
+				if(i > 0) {
+					if((prevCross & cross) == 0) {
+						intersect = true;
+					}
 				}
-
+				prevCross = cross;
 			}
 		}
-		prevx = rc->calcX;
-		prevy = rc->calcY;
 	}
 
 	if (!intersect) {
@@ -412,11 +430,6 @@ void drawPolyline(MapDataObject* mObj, RenderingRuleSearchRequest* req, SkCanvas
 
 	if (i > 0) {
 		if (drawOnlyShadow) {
-			int shadowColor = req->getIntPropertyValue(req->props()->R_SHADOW_COLOR);
-			int shadowRadius = req->getIntPropertyValue(req->props()->R_SHADOW_RADIUS);
-			if(shadowColor == 0) {
-				shadowColor = rc->getShadowRenderingColor();
-			}
 			drawPolylineShadow(cv, paint, rc, &path, shadowColor, shadowRadius);
 		} else {
 			if (updatePaint(req, paint, -2, 0, rc)) {
@@ -467,9 +480,7 @@ void drawPolygon(MapDataObject* mObj, RenderingRuleSearchRequest* req, SkCanvas*
 	rc->visible++;
 	SkPath path;
 	int i = 0;
-	float prevx;
-	float prevy;
-	bool intersect = false;
+	bool containsPoint = false;
 	int bounds = 0;
 	for (; i < length; i++) {
 		calcPoint(mObj->points.at(i), rc);
@@ -478,35 +489,36 @@ void drawPolygon(MapDataObject* mObj, RenderingRuleSearchRequest* req, SkCanvas*
 		} else {
 			path.lineTo(rc->calcX, rc->calcY);
 		}
-		xText += rc->calcX;
-		yText += rc->calcY;
-		if (!intersect) {
+		float tx = rc->calcX;
+		if (tx < 0) {
+			tx = 0;
+		}
+		if (tx > rc->getWidth()) {
+			tx = rc->getWidth();
+		}
+		float ty = rc->calcY;
+		if (ty < 0) {
+			ty = 0;
+		}
+		if (ty > rc->getHeight()) {
+			ty = rc->getHeight();
+		}
+		xText += tx;
+		yText += ty;
+		if (!containsPoint) {
 			if (rc->calcX >= 0 && rc->calcY >= 0 && rc->calcX < rc->getWidth() && rc->calcY < rc->getHeight()) {
-				intersect = true;
+				containsPoint = true;
 			}
 			bounds |= (rc->calcX < 0 ? 1 : 0);
 			bounds |= (rc->calcX >= rc->getWidth() ? 2 : 0);
 			bounds |= (rc->calcY < 0 ? 4 : 0);
 			bounds |= (rc->calcY >= rc->getHeight() ? 8 : 0);
-			if (!intersect && i > 0) {
-				if ((rc->calcX < 0 && prevx < 0) || (rc->calcY < 0 && prevy < 0)
-						|| (rc->calcX > rc->getWidth() && prevx > rc->getWidth())
-						|| (rc->calcY > rc->getHeight() && prevy > rc->getHeight())) {
-					intersect = false;
-				} else {
-					intersect = true;
-				}
-			}
 		}
 	}
-	if(!intersect){
+	xText /= length;
+	yText /= length;
+	if(!containsPoint){
 		if(bounds == 15) {
-			path.reset();
-			path.moveTo(0, 0);
-			path.lineTo(0, rc->getWidth());
-			path.lineTo(rc->getHeight(), rc->getWidth());
-			path.lineTo(rc->getHeight(), 0);
-			path.close();
 			xText = rc->getWidth() / 2;
 			yText = rc->getHeight() / 2;
 		} else {
@@ -534,7 +546,7 @@ void drawPolygon(MapDataObject* mObj, RenderingRuleSearchRequest* req, SkCanvas*
 		PROFILE_NATIVE_OPERATION(rc, cv->drawPath(path, *paint));
 	}
 
-	renderText(mObj, req, rc, pair.first, pair.second, xText / length, yText / length, NULL);
+	renderText(mObj, req, rc, pair.first, pair.second, xText, yText, NULL);
 }
 
 void drawPoint(MapDataObject* mObj,	RenderingRuleSearchRequest* req, SkCanvas* cv, SkPaint* paint,
@@ -579,18 +591,29 @@ void drawPoint(MapDataObject* mObj,	RenderingRuleSearchRequest* req, SkCanvas* c
 
 }
 
-void drawObject(RenderingContext* rc, MapDataObject* mObj, SkCanvas* cv, RenderingRuleSearchRequest* req,
-	SkPaint* paint, int l, int renderText, int drawOnlyShadow, int t) {
-	rc->allObjects++;
-	tag_value pair = mObj->types.at(l);
-	if (t == 1 && !drawOnlyShadow) {
-		// point
-		drawPoint(mObj, req, cv, paint, rc, pair, renderText);
-	} else if (t == 2) {
-		drawPolyline(mObj, req, cv, paint, rc, pair, mObj->getSimpleLayer(), drawOnlyShadow);
-	} else if (t == 3 && !drawOnlyShadow) {
-		// polygon
-		drawPolygon(mObj, req, cv, paint, rc, pair);
+void drawObject(RenderingContext* rc,  SkCanvas* cv, RenderingRuleSearchRequest* req,
+	SkPaint* paint, vector<MapDataObjectPrimitive>& array, int objOrder) {
+
+	double polygonLimit = 100;
+	float orderToSwitch = 0;
+	for (int i = 0; i < array.size(); i++) {
+		rc->allObjects++;
+		MapDataObject* mObj = array[i].obj;
+		tag_value pair = mObj->types.at(array[i].typeInd);
+		if (objOrder == 0) {
+			if (array[i].order < rc->polygonMinSizeToDisplay) {
+				return;
+			}
+			// polygon
+			drawPolygon(mObj, req, cv, paint, rc, pair);
+		} else if (objOrder == 1 || objOrder == 2) {
+			drawPolyline(mObj, req, cv, paint, rc, pair, mObj->getSimpleLayer(), objOrder == 1);
+		} else if (objOrder == 3) {
+			drawPoint(mObj, req, cv, paint, rc, pair, array[i].typeInd == 0);
+		}
+		if (i % 25 == 0 && rc->interrupted()) {
+			return;
+		}
 	}
 }
 
@@ -635,12 +658,80 @@ void drawIconsOverCanvas(RenderingContext* rc, SkCanvas* canvas)
 	}
 }
 
-UNORDERED(map)<int, std::vector<int> > sortObjectsByProperOrder(std::vector <MapDataObject* > mapDataObjects,
-	RenderingRuleSearchRequest* req, RenderingContext* rc) {
-	UNORDERED(map)<int, std::vector<int> > orderMap;
+double polygonArea(MapDataObject* obj, float mult) {
+	double area = 0.;
+	int j = obj->points.size() - 1;
+	for (int i = 0; i < obj->points.size(); i++) {
+		int_pair x = obj->points[i] ;
+		int_pair y = obj->points[j];
+		area += (y.first + ((float) x.first) )* (y.second- ((float)x.second));
+		j = i;
+	}
+	return std::abs(area) * mult * mult * .5;
+}
+
+void filterLinesByDensity(RenderingContext* rc, std::vector<MapDataObjectPrimitive>&  linesResArray,
+		std::vector<MapDataObjectPrimitive>& linesArray) {
+	int roadsLimit = rc->roadsDensityLimitPerTile;
+	int densityZ = rc->roadDensityZoomTile;
+	if(densityZ == 0 || roadsLimit == 0) {
+		linesResArray = linesArray;
+		return;
+	}
+	linesResArray.reserve(linesArray.size());
+	UNORDERED(map)<int64_t, pair<int, int> > densityMap;
+	for (int i = linesArray.size() - 1; i >= 0; i--) {
+		bool accept = true;
+		int o = linesArray[i].order;
+		MapDataObject* line = linesArray[i].obj;
+		tag_value& ts = line->types[linesArray[i].typeInd];
+		if (ts.first == "highway") {
+			accept = false;
+			int64_t prev = 0;
+			for (int k = 0; k < line->points.size(); k++) {
+				int dz = rc->getZoom() + densityZ;
+				int64_t x = (line->points[k].first) >> (31 - dz);
+				int64_t y = (line->points[k].second) >> (31 - dz);
+				int64_t tl = (x << dz) + y;
+				if (prev != tl) {
+					prev = tl;
+					pair<int, int>& p = densityMap[tl];
+					if (p.first < roadsLimit/* && p.second > o */) {
+						accept = true;
+						p.first++;
+						p.second = o;
+						densityMap[tl] = p;
+					}
+				}
+			}
+		}
+		if(accept) {
+			linesResArray.push_back(linesArray[i]);
+		}
+	}
+	reverse(linesResArray.begin(), linesResArray.end());
+}
+bool sortByOrder(const MapDataObjectPrimitive& i,const MapDataObjectPrimitive& j) {
+	if( i.order == j.order) {
+		if(i.typeInd == j.typeInd) {
+			return i.obj->points.size() < j.obj->points.size() ;
+		}
+		return i.typeInd < j.typeInd;
+	}
+	return (i.order<j.order); }
+bool sortPolygonsOrder(const MapDataObjectPrimitive& i,const MapDataObjectPrimitive& j) {
+	if( i.order == j.order) return i.typeInd < j.typeInd;
+	return (i.order>j.order); }
+
+void sortObjectsByProperOrder(std::vector <MapDataObject* > mapDataObjects,
+	RenderingRuleSearchRequest* req, RenderingContext* rc,
+		std::vector<MapDataObjectPrimitive>&  polygonsArray, std::vector<MapDataObjectPrimitive>&  pointsArray,
+		std::vector<MapDataObjectPrimitive>&  linesResArray) {
 	if (req != NULL) {
+		std::vector<MapDataObjectPrimitive>  linesArray;
 		req->clearState();
 		const int size = mapDataObjects.size();
+		float mult = 1. / getPowZoom(max(31 - (rc->getZoom() + 8), 0));
 		int i = 0;
 		for (; i < size; i++) {
 			uint32_t sh = i << 8;
@@ -657,11 +748,24 @@ UNORDERED(map)<int, std::vector<int> > sortObjectsByProperOrder(std::vector <Map
 				if (req->searchRule(RenderingRulesStorage::ORDER_RULES)) {
 					int objectType = req->getIntPropertyValue(req->props()->R_OBJECT_TYPE);
 					int order = req->getIntPropertyValue(req->props()->R_ORDER);
-					orderMap[(order << 2)|objectType].push_back(sh + j);
+					MapDataObjectPrimitive mapObj;
+					mapObj.objectType = objectType;
+					mapObj.order = order;
+					mapObj.typeInd = j;
+					mapObj.obj = mobj;
 					// polygon
 					if(objectType == 3) {
-						// add icon point all the time
-						orderMap[(128 << 2)|1].push_back(sh + j);
+						MapDataObjectPrimitive pointObj = mapObj;
+						pointObj.objectType = 1;
+						mapObj.order = polygonArea(mobj, mult);
+						if(mapObj.order > MAX_V) { 
+							polygonsArray.push_back(mapObj);
+							pointsArray.push_back(pointObj);
+						}
+					} else if(objectType == 1) {
+						pointsArray.push_back(mapObj);
+					} else {
+						linesArray.push_back(mapObj);
 					}
 					if (req->getIntPropertyValue(req->props()->R_SHADOW_LEVEL) > 0) {
 						rc->shadowLevelMin = std::min(rc->shadowLevelMin, order);
@@ -672,8 +776,11 @@ UNORDERED(map)<int, std::vector<int> > sortObjectsByProperOrder(std::vector <Map
 
 			}
 		}
+		sort(polygonsArray.begin(), polygonsArray.end(), sortPolygonsOrder);
+		sort(pointsArray.begin(), pointsArray.end(), sortByOrder);
+		sort(linesArray.begin(), linesArray.end(), sortByOrder);
+		filterLinesByDensity(rc, linesResArray, linesArray);
 	}
-	return orderMap;
 }
 
 void doRendering(std::vector <MapDataObject* > mapDataObjects, SkCanvas* canvas,
@@ -683,53 +790,23 @@ void doRendering(std::vector <MapDataObject* > mapDataObjects, SkCanvas* canvas,
 	SkPaint* paint = new SkPaint;
 	paint->setAntiAlias(true);
 
-	// put in order map
-	UNORDERED(map)<int, std::vector<int> > orderMap = sortObjectsByProperOrder(mapDataObjects, req, rc);
-	std::set<int> keys;
-	UNORDERED(map)<int, std::vector<int> >::iterator it = orderMap.begin();
+	std::vector<MapDataObjectPrimitive>  polygonsArray;
+	std::vector<MapDataObjectPrimitive>  pointsArray;
+	std::vector<MapDataObjectPrimitive>  linesArray;
+	sortObjectsByProperOrder(mapDataObjects, req, rc, polygonsArray, pointsArray, linesArray);
+	rc->lastRenderedKey = 0;
 
-	while (it != orderMap.end()) {
-		keys.insert(it->first);
-		it++;
+	drawObject(rc, canvas, req, paint, polygonsArray, 0);
+	rc->lastRenderedKey = 5;
+	if (rc->getShadowRenderingMode() > 1) {
+		drawObject(rc, canvas, req, paint, linesArray, 1);
 	}
-	bool shadowDrawn = false;
-	for (std::set<int>::iterator ks = keys.begin(); ks != keys.end(); ks++) {
-		if (!shadowDrawn && ((*ks)>>2) >= rc->shadowLevelMin && ((*ks)>>2) <= rc->shadowLevelMax && rc->getShadowRenderingMode() > 1) {
-			for (std::set<int>::iterator ki = ks; ki != keys.end(); ki++) {
-				if (((*ki)>>2) > rc->shadowLevelMax || rc->interrupted()) {
-					break;
-				}
-				std::vector<int> list = orderMap[*ki];
-				for (std::vector<int>::iterator ls = list.begin(); ls != list.end(); ls++) {
-					int i = *ls;
-					int ind = i >> 8;
-					int l = i & 0xff;
-					MapDataObject* mapObject = mapDataObjects.at(ind);
+	rc->lastRenderedKey = 40;
+	drawObject(rc, canvas, req, paint, linesArray, 2);
+	rc->lastRenderedKey = 60;
 
-					// show text only for main type
-
-					drawObject(rc, mapObject, canvas, req, paint, l, l == 0, true, (*ki)&3);
-				}
-			}
-			shadowDrawn = true;
-		}
-
-		std::vector<int> list = orderMap[*ks];
-		for (std::vector<int>::iterator ls = list.begin(); ls != list.end(); ls++) {
-			int i = *ls;
-			int ind = i >> 8;
-			int l = i & 0xff;
-
-			MapDataObject* mapObject = mapDataObjects.at(ind);
-			// show text only for main type
-			drawObject(rc, mapObject, canvas, req, paint, l, l == 0, false, (*ks)&3);
-		}
-		rc->lastRenderedKey = (*ks) >>2;
-		if (rc->interrupted()) {
-			return;
-		}
-
-	}
+	drawObject(rc, canvas, req, paint, pointsArray, 3);
+	rc->lastRenderedKey = 125;
 
 	drawIconsOverCanvas(rc, canvas);
 

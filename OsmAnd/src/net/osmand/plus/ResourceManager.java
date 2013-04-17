@@ -1,5 +1,6 @@
 package net.osmand.plus;
 
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -508,10 +509,13 @@ public class ResourceManager {
 		file.mkdirs();
 		Map<String, File> externalRenderers = new LinkedHashMap<String, File>(); 
 		if (file.exists() && file.canRead()) {
-			for (File f : file.listFiles()) {
-				if (f.getName().endsWith(IndexConstants.RENDERER_INDEX_EXT)) {
-					String name = f.getName().substring(0, f.getName().length() - IndexConstants.RENDERER_INDEX_EXT.length());
-					externalRenderers.put(name, f);
+			File[] lf = file.listFiles();
+			if (lf != null) {
+				for (File f : lf) {
+					if (f != null && f.getName().endsWith(IndexConstants.RENDERER_INDEX_EXT)) {
+						String name = f.getName().substring(0, f.getName().length() - IndexConstants.RENDERER_INDEX_EXT.length());
+						externalRenderers.put(name, f);
+					}
 				}
 			}
 		}
@@ -535,8 +539,7 @@ public class ResourceManager {
 		if(indCache.exists()) {
 			try {
 				cachedOsmandIndexes.readFromFile(indCache, CachedOsmandIndexes.VERSION);
-				NativeOsmandLibrary nativeLib = context.getSettings().NATIVE_RENDERING.get() ? NativeOsmandLibrary.getLoadedLibrary()
-						: null;
+				NativeOsmandLibrary nativeLib = NativeOsmandLibrary.getLoadedLibrary();
 				if(nativeLib != null) {
 					nativeLib.initCacheMapFile(indCache.getAbsolutePath());
 				}
@@ -544,9 +547,13 @@ public class ResourceManager {
 				log.error(e.getMessage(), e);
 			}
 		}
-		if (file.exists() && file.canRead()) {
+		if (file.exists() && file.canRead() ) {
 			long val = System.currentTimeMillis();
-			for (File f : file.listFiles()) {
+			File[] lf = file.listFiles();
+			if(lf == null) {
+				lf = new File[0];
+			}
+			for (File f : lf) {
 				if (f.getName().endsWith(IndexConstants.BINARY_MAP_INDEX_EXT)) {
 					progress.startTask(context.getString(R.string.indexing_map) + " " + f.getName(), -1); //$NON-NLS-1$
 					try {
@@ -567,8 +574,12 @@ public class ResourceManager {
 						} else {
 							if(index.isBasemap()) {
 								basemapFileNames.add(f.getName());
+							} 
+							long dateCreated = index.getDateCreated();
+							if(dateCreated == 0) {
+								dateCreated = f.lastModified();
 							}
-							indexFileNames.put(f.getName(), MessageFormat.format("{0,date,dd.MM.yyyy}", new Date(f.lastModified()))); //$NON-NLS-1$
+							indexFileNames.put(f.getName(), MessageFormat.format("{0,date,dd.MM.yyyy}", new Date(dateCreated))); //$NON-NLS-1$
 							for(String rName : index.getRegionNames()) {
 								// skip duplicate names (don't make collision between getName() and name in the map)
 								// it can be dangerous to use one file to different indexes if it is multithreaded
@@ -632,8 +643,11 @@ public class ResourceManager {
 		file.mkdirs();
 		List<String> warnings = new ArrayList<String>();
 		if (file.exists() && file.canRead()) {
-			for (File f : file.listFiles()) {
-				indexingPoi(progress, warnings, f);
+			File[] listFiles = file.listFiles();
+			if (listFiles != null) {
+				for (File f : listFiles) {
+					indexingPoi(progress, warnings, f);
+				}
 			}
 		}
 		File updatablePoiDbFile = context.getSettings().extendOsmandPath(MINE_POI_DB);
@@ -681,12 +695,6 @@ public class ResourceManager {
 				log.error("Exception reading " + f.getAbsolutePath(), e); //$NON-NLS-1$
 				warnings.add(MessageFormat.format(context.getString(R.string.version_index_is_not_supported), f.getName())); //$NON-NLS-1$
 			}
-		}
-	}
-	
-	public void updateIndexLastDateModified(File f){
-		if(f != null && f.exists()){
-			indexFileNames.put(f.getName(), MessageFormat.format("{0,date,dd.MM.yyyy}", new Date(f.lastModified()))); //$NON-NLS-1$
 		}
 	}
 	
@@ -922,9 +930,12 @@ public class ResourceManager {
 	public Map<String, String> getBackupIndexes(Map<String, String> map) {
 		File file = context.getSettings().extendOsmandPath(BACKUP_PATH);
 		if (file != null && file.isDirectory()) {
-			for (File f : file.listFiles()) {
-				if (f != null && f.getName().endsWith(IndexConstants.BINARY_MAP_INDEX_EXT)) {
-					map.put(f.getName(), MessageFormat.format("{0,date,dd.MM.yyyy}", new Date(f.lastModified()))); //$NON-NLS-1$		
+			File[] lf = file.listFiles();
+			if (lf != null) {
+				for (File f : lf) {
+					if (f != null && f.getName().endsWith(IndexConstants.BINARY_MAP_INDEX_EXT)) {
+						map.put(f.getName(), MessageFormat.format("{0,date,dd.MM.yyyy}", new Date(f.lastModified()))); //$NON-NLS-1$		
+					}
 				}
 			}
 		}

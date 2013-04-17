@@ -1,5 +1,6 @@
 package net.osmand.router;
 
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,9 +12,10 @@ import net.osmand.osm.MapUtils;
 
 public class RouteSegmentResult {
 	private final RouteDataObject object;
-	private final int startPointIndex;
+	private int startPointIndex;
 	private int endPointIndex;
-	private final List<RouteSegmentResult>[] attachedRoutes;
+	private List<RouteSegmentResult>[] attachedRoutes;
+	private RouteSegmentResult[][] preAttachedRoutes;
 	private float segmentTime;
 	private float speed;
 	private float distance;
@@ -21,11 +23,17 @@ public class RouteSegmentResult {
 	// this make not possible to make turns in between segment result for now
 	private TurnType turnType;
 	
-	@SuppressWarnings("unchecked")
+	
 	public RouteSegmentResult(RouteDataObject object, int startPointIndex, int endPointIndex) {
 		this.object = object;
 		this.startPointIndex = startPointIndex;
 		this.endPointIndex = endPointIndex;
+		updateCapacity();
+	}
+	
+
+	@SuppressWarnings("unchecked")
+	private void updateCapacity() {
 		int capacity = Math.abs(endPointIndex - startPointIndex) + 1;
 		this.attachedRoutes = new List[capacity];
 	}
@@ -36,6 +44,22 @@ public class RouteSegmentResult {
 			attachedRoutes[st] = new ArrayList<RouteSegmentResult>();
 		}
 		attachedRoutes[st].add(r);
+	}
+	
+	public void copyPreattachedRoutes(RouteSegmentResult toCopy, int shift) {
+		if(toCopy.preAttachedRoutes != null) {
+			int l = toCopy.preAttachedRoutes.length - shift;
+			preAttachedRoutes = new RouteSegmentResult[l][];
+			System.arraycopy(toCopy.preAttachedRoutes, shift, preAttachedRoutes, 0, l);
+		}
+	}
+	
+	public RouteSegmentResult[] getPreAttachedRoutes(int routeInd) {
+		int st = Math.abs(routeInd - startPointIndex);
+		if(preAttachedRoutes != null && st < preAttachedRoutes.length) {
+			return preAttachedRoutes[st];
+		}
+		return null;
 	}
 	
 	public List<RouteSegmentResult> getAttachedRoutes(int routeInd) {
@@ -109,6 +133,12 @@ public class RouteSegmentResult {
 	
 	public void setEndPointIndex(int endPointIndex) {
 		this.endPointIndex = endPointIndex;
+		updateCapacity();
+	}
+	
+	public void setStartPointIndex(int startPointIndex) {
+		this.startPointIndex = startPointIndex;
+		updateCapacity();
 	}
 	
 	public float getSegmentSpeed() {

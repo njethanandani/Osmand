@@ -35,27 +35,28 @@ import net.osmand.data.DataTileManager;
 import net.osmand.osm.Entity;
 import net.osmand.osm.LatLon;
 import net.osmand.osm.MapUtils;
-import net.osmand.osm.Way;
 import net.osmand.osm.OSMSettings.OSMTagKey;
+import net.osmand.osm.Way;
 import net.osmand.router.BinaryRoutePlanner;
+import net.osmand.router.BinaryRoutePlanner.RouteSegment;
+import net.osmand.router.BinaryRoutePlanner.RouteSegmentVisitor;
+import net.osmand.router.BinaryRoutePlannerOld;
+import net.osmand.router.RoutePlannerFrontEnd;
 import net.osmand.router.RouteSegmentResult;
 import net.osmand.router.RoutingConfiguration;
 import net.osmand.router.RoutingConfiguration.Builder;
 import net.osmand.router.RoutingContext;
-import net.osmand.router.BinaryRoutePlanner.RouteSegment;
-import net.osmand.router.BinaryRoutePlanner.RouteSegmentVisitor;
 
+import org.apache.commons.logging.Log;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
-import org.apache.commons.logging.Log;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 
 
@@ -66,6 +67,7 @@ public class MapRouterLayer implements MapPanelLayer {
 	private MapPanel map;
 	private LatLon startRoute ;
 	private LatLon endRoute ;
+	private List<LatLon> intermediates = new ArrayList<LatLon>();
 	private boolean nextAvailable = true;
 	private boolean pause = true;
 	private boolean stop = false;
@@ -171,23 +173,22 @@ public class MapRouterLayer implements MapPanelLayer {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Thread() {
-					@Override
-					public void run() {
-						List<Way> ways = selfRoute(startRoute, endRoute, null);
-						if (ways != null) {
-							DataTileManager<Way> points = new DataTileManager<Way>();
-							points.setZoom(11);
-							for (Way w : ways) {
-								LatLon n = w.getLatLon();
-								points.registerObject(n.getLatitude(), n.getLongitude(), w);
-							}
-							map.setPoints(points);
-						}
-					}
-				}.start();
+				previousRoute = null;
+				calcRoute(false);
 			}
 		};
+		menu.add(selfRoute);
+		
+		Action selfBaseRoute = new AbstractAction("Calculate OsmAnd base route") {
+			private static final long serialVersionUID = 8049785829806139142L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				previousRoute = null;
+				calcRoute(true);
+			}
+		};
+		menu.add(selfBaseRoute);
 		
 		Action recalculate = new AbstractAction("Recalculate OsmAnd route") {
 			private static final long serialVersionUID = 507156107455281238L;
@@ -200,25 +201,11 @@ public class MapRouterLayer implements MapPanelLayer {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Thread() {
-					@Override
-					public void run() {
-						List<Way> ways = selfRoute(startRoute, endRoute, previousRoute);
-						if (ways != null) {
-							DataTileManager<Way> points = new DataTileManager<Way>();
-							points.setZoom(11);
-							for (Way w : ways) {
-								LatLon n = w.getLatLon();
-								points.registerObject(n.getLatitude(), n.getLongitude(), w);
-							}
-							map.setPoints(points);
-						}
-					}
-				}.start();
+				calcRoute(false);
 			}
 		};
 		
-		menu.add(selfRoute);
+		
 		menu.add(recalculate);
 		Action route_YOURS = new AbstractAction("Calculate YOURS route") {
 			private static final long serialVersionUID = 507156107455281238L;
@@ -229,8 +216,7 @@ public class MapRouterLayer implements MapPanelLayer {
 					@Override
 					public void run() {
 						List<Way> ways = route_YOURS(startRoute, endRoute);
-						DataTileManager<Way> points = new DataTileManager<Way>();
-						points.setZoom(11);
+						DataTileManager<Way> points = new DataTileManager<Way>(11);
 						for(Way w : ways){
 							LatLon n = w.getLatLon();
 							points.registerObject(n.getLatitude(), n.getLongitude(), w);
@@ -250,8 +236,7 @@ public class MapRouterLayer implements MapPanelLayer {
 					@Override
 					public void run() {
 						List<Way> ways = route_CloudMate(startRoute, endRoute);
-						DataTileManager<Way> points = new DataTileManager<Way>();
-						points.setZoom(11);
+						DataTileManager<Way> points = new DataTileManager<Way>(11);
 						for (Way w : ways) {
 							LatLon n = w.getLatLon();
 							points.registerObject(n.getLatitude(), n.getLongitude(), w);
@@ -274,24 +259,53 @@ public class MapRouterLayer implements MapPanelLayer {
 			}
 		};
 		menu.add(swapLocations);
+		Action addIntermediate = new AbstractAction("Add transit point") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Point popupMenuPoint = map.getPopupMenuPoint();
+				double fy = (popupMenuPoint.y - map.getCenterPointY()) / map.getTileSize();
+				double fx = (popupMenuPoint.x - map.getCenterPointX()) / map.getTileSize();
+				double latitude = MapUtils.getLatitudeFromTile(map.getZoom(), map.getYTile() + fy);
+				double longitude = MapUtils.getLongitudeFromTile(map.getZoom(), map.getXTile() + fx);
+				intermediates.add(new LatLon(latitude, longitude));
+				map.repaint();
+			}
+		};
+		menu.add(addIntermediate);
+		
+		Action remove = new AbstractAction("Remove transit point") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(intermediates.size() > 0){
+					intermediates.remove(0);
+				}
+				map.repaint();
+			}
+		};
+		menu.add(remove);
 
 	}
 	
 	
-	// for vector rendering we should extract from osm
-	// 1. Ways (different kinds) with tag highway= ?,highway=stop ...
-	// 2. Junction = roundabout
-	// 3. barrier, traffic_calming=bump
-	// 4. Save {name, ref} of way to unify it
+	private void calcRoute(final boolean useBasemap) {
+		new Thread() {
+			@Override
+			public void run() {
+				List<Way> ways = selfRoute(startRoute, endRoute, intermediates, previousRoute, useBasemap);
+				if (ways != null) {
+					DataTileManager<Way> points = new DataTileManager<Way>(11);
+					for (Way w : ways) {
+						LatLon n = w.getLatLon();
+						points.registerObject(n.getLatitude(), n.getLongitude(), w);
+					}
+					map.setPoints(points);
+				}
+			}
+		}.start();
+	}
 	
-	// + for future routing we should extract from osm
-	// 1. oneway 
-	// 2. max_speed
-	// 3. toll
-	// 4. traffic_signals
-	// 5. max_heigtht, max_width, min_speed, ...
-	// 6. incline ?
-
 	public static List<Way> route_YOURS(LatLon start, LatLon end){
 		List<Way> res = new ArrayList<Way>();
 		long time = System.currentTimeMillis();
@@ -512,35 +526,6 @@ public class MapRouterLayer implements MapPanelLayer {
 				if (!w.getNodes().isEmpty()) {
 					res.add(w);
 				}
-
-				/*DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-				DocumentBuilder dom = factory.newDocumentBuilder();
-				Document doc = dom.parse(new InputSource(new StringReader(content.toString())));
-				NodeList list = doc.getElementsByTagName("coordinates");
-				for(int i=0; i<list.getLength(); i++){
-					Node item = list.item(i);
-					String str = item.getTextContent();
-					int st = 0;
-					int next = 0;
-					Way w = new Way(-1);
-					while((next = str.indexOf('\n', st)) != -1){
-						String coordinate = str.substring(st, next + 1);
-						int s = coordinate.indexOf(',');
-						if (s != -1) {
-							try {
-								double lon = Double.parseDouble(coordinate.substring(0, s));
-								double lat = Double.parseDouble(coordinate.substring(s + 1));
-								w.addNode(new net.osmand.osm.Node(lat, lon, -1));
-							} catch (NumberFormatException e) {
-							}
-						}
-						st = next + 1;
-					}
-					if(!w.getNodes().isEmpty()){
-						res.add(w);
-					}
-					
-				}*/
 			} catch (IOException e) {
 				ExceptionHandler.handle(e);
 			} catch (JSONException e) {
@@ -551,7 +536,7 @@ public class MapRouterLayer implements MapPanelLayer {
 		return res;
 	}
 	
-	public List<Way> selfRoute(LatLon start, LatLon end, List<RouteSegmentResult> previousRoute) {
+	public List<Way> selfRoute(LatLon start, LatLon end, List<LatLon> intermediates, List<RouteSegmentResult> previousRoute, boolean useBasemap) {
 		List<Way> res = new ArrayList<Way>();
 		long time = System.currentTimeMillis();
 		List<File> files = new ArrayList<File>();
@@ -598,130 +583,79 @@ public class MapRouterLayer implements MapPanelLayer {
 				}
 				String m = DataExtractionSettings.getSettings().getRouteMode();
 				String[] props = m.split("\\,");
-				BinaryRoutePlanner router = new BinaryRoutePlanner(NativeSwingRendering.getDefaultFromSettings(), rs);
-				RoutingConfiguration config = builder.build(props[0], props);
+				RoutePlannerFrontEnd router = new RoutePlannerFrontEnd(true);
+				RoutingConfiguration config = builder.build(props[0], RoutingConfiguration.DEFAULT_MEMORY_LIMIT, props);
+//				config.initialDirection = 90d / 180d * Math.PI; // EAST
+//				config.initialDirection = 180d / 180d * Math.PI; // SOUTH
+//				config.initialDirection = -90d / 180d * Math.PI; // WEST
+//				config.initialDirection = 0 / 180d * Math.PI; // NORTH
 				// config.NUMBER_OF_DESIRABLE_TILES_IN_MEMORY = 300;
 				// config.ZOOM_TO_LOAD_TILES = 14;
-				RoutingContext ctx = new RoutingContext(config);
+				final RoutingContext ctx = new RoutingContext(config, NativeSwingRendering.getDefaultFromSettings(), rs, useBasemap);
 				ctx.previouslyCalculatedRoute = previousRoute;
 				log.info("Use " + config.routerName + "mode for routing");
 				
-				// find closest way
-				RouteSegment st = router.findRouteSegment(start.getLatitude(), start.getLongitude(), ctx);
-				if (st == null) {
-					throw new RuntimeException("Starting point for route not found");
-				}
-				System.out.println("ROAD TO START " + st.getRoad().getHighway() + " " + st.getRoad().id);
 				
-				RouteSegment e = router.findRouteSegment(end.getLatitude(), end.getLongitude(), ctx);
-				if (e == null) {
-					throw new RuntimeException("End point to calculate route was not found");
-				}
-				System.out.println("ROAD TO END " + e.getRoad().getHighway() + " " + e.getRoad().id);
-				
-				final DataTileManager<Entity> points = new DataTileManager<Entity>();
-				points.setZoom(11);
+				final DataTileManager<Entity> points = new DataTileManager<Entity>(11);
 				map.setPoints(points);
-				ctx.setVisitor(new RouteSegmentVisitor() {
-					
-					private List<RouteSegment> cache = new ArrayList<RouteSegment>();
-					private List<RouteSegment> pollCache = new ArrayList<RouteSegment>();
-					
+				ctx.setVisitor(createSegmentVisitor(animateRoutingCalculation, points));
+				// Choose native or not native
+				long nt = System.nanoTime();
+				new Thread(){
 					@Override
-					public void visitSegment(RouteSegment s, boolean poll) {
-						if(stop) {
-							throw new RuntimeException("Interrupted");
+					public void run() {
+						while(!ctx.calculationProgress.isCancelled) {
+							float p = ctx.calculationProgress.distanceFromBegin + ctx.calculationProgress.distanceFromEnd;
+							float all = ctx.calculationProgress.totalEstimatedDistance;
+//							while (p > all * 0.9) {
+//								all *= 1.2;
+//							}
+							if(all > 0 ) {
+								int  t = (int) (p*p/(all*all)*100f);  
+//								int  t = (int) (p/all*100f);
+								System.out.println("Progress " + t + " % " + 
+								ctx.calculationProgress.distanceFromBegin + " " + ctx.calculationProgress.distanceFromEnd+" " + all);
+							}
+							try {
+								sleep(100);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
-						if (!animateRoutingCalculation) {
-							return;
+					};
+				}.start();
+				try {
+					List<RouteSegmentResult> searchRoute = router.searchRoute(ctx, start, end, intermediates, false);
+					if (searchRoute == null) {
+						String reason = "unknown";
+						if (ctx.calculationProgress.segmentNotFound >= 0) {
+							if (ctx.calculationProgress.segmentNotFound == 0) {
+								reason = " start point is too far from road";
+							} else {
+								reason = " target point " + ctx.calculationProgress.segmentNotFound + " is too far from road";
+							}
+						} else if (ctx.calculationProgress.directSegmentQueueSize == 0) {
+							reason = " route can not be found from start point (" + ctx.calculationProgress.distanceFromBegin / 1000f
+									+ " km)";
+						} else if (ctx.calculationProgress.reverseSegmentQueueSize == 0) {
+							reason = " route can not be found from end point (" + ctx.calculationProgress.distanceFromEnd / 1000f + " km)";
 						}
-						if (!poll && pause) {
-							pollCache.add(s);
-							return;
-						}
-
-						cache.add(s);
-						if (cache.size() < steps) {
-							return;
-						}
-						if(pause) {
-							registerObjects(points, poll, pollCache);
-							pollCache.clear();
-						}
-						registerObjects(points, !poll, cache);
-						cache.clear();
-						redraw();
-						if (pause) {
-							waitNextPress();
-						}
+						throw new RuntimeException("Route not found : " + reason);
 					}
 
-					private void registerObjects(final DataTileManager<Entity> points, boolean white, 
-							List<RouteSegment> registerCache) {
-						for (RouteSegment segment : registerCache) {
-							Way way = new Way(-1);
-							way.putTag(OSMTagKey.NAME.getValue(), segment.getTestName());
-							if(white) {
-								way.putTag("color", "white");
-							}
-							for (int i = 0; i < segment.getRoad().getPointsLength(); i++) {
-								net.osmand.osm.Node n = createNode(segment, i);
-								way.addNode(n);
-							}
-							LatLon n = way.getLatLon();
-							points.registerObject(n.getLatitude(), n.getLongitude(), way);
-						}
+					System.out.println("External native time " + (System.nanoTime() - nt) / 1e9f);
+					if (animateRoutingCalculation) {
+						playPauseButton.setVisible(false);
+						nextTurn.setText("FINISH");
+						waitNextPress();
+						nextTurn.setText(">>");
 					}
-
-				});
-				
-				List<RouteSegmentResult> searchRoute = router.searchRoute(ctx, st, e, false);
-				this.previousRoute = searchRoute;
-				if (animateRoutingCalculation) {
-					playPauseButton.setVisible(false);
-					nextTurn.setText("FINISH");
-					waitNextPress();
-					nextTurn.setText(">>");
+					calculateResult(res, searchRoute);
+				} finally {
+					ctx.calculationProgress.isCancelled = true;
 				}
-				net.osmand.osm.Node prevWayNode = null;
-				for (RouteSegmentResult s : searchRoute) {
-					// double dist = MapUtils.getDistance(s.startPoint, s.endPoint);
-					Way way = new Way(-1);
-//					String name = String.format("time %.2f ", s.getSegmentTime());
-					String name = s.getDescription();
-					if(s.getTurnType() != null) {
-						name += " (TA " + s.getTurnType().getTurnAngle() + ") ";
-					}
-//					String name = String.format("beg %.2f end %.2f ", s.getBearingBegin(), s.getBearingEnd());
-					way.putTag(OSMTagKey.NAME.getValue(),name);
-					boolean plus = s.getStartPointIndex() < s.getEndPointIndex();
-					int i = s.getStartPointIndex();
-					while (true) {
-						LatLon l = s.getPoint(i);
-						net.osmand.osm.Node n = new net.osmand.osm.Node(l.getLatitude(), l.getLongitude(), -1);
-						if (prevWayNode != null) {
-							if (MapUtils.getDistance(prevWayNode, n) > 0) {
-								System.out.println("Warning not connected road " + " " + s.getObject().getHighway() + " dist "
-										+ MapUtils.getDistance(prevWayNode, n));
-							}
-							prevWayNode = null;
-						}
-						way.addNode(n);
-						if (i == s.getEndPointIndex()) {
-							break;
-						}
-						if (plus) {
-							i++;
-						} else {
-							i--;
-						}
-					}
-					if (way.getNodes().size() > 0) {
-						prevWayNode = way.getNodes().get(way.getNodes().size() - 1);
-					}
-					res.add(way);
-				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				ExceptionHandler.handle(e);
 			} finally {
 				playPauseButton.setVisible(false);
@@ -734,6 +668,116 @@ public class MapRouterLayer implements MapPanelLayer {
 			System.out.println("Finding self routes " + res.size() + " " + (System.currentTimeMillis() - time) + " ms");
 		}
 		return res;
+	}
+
+	private void calculateResult(List<Way> res, List<RouteSegmentResult> searchRoute) {
+		net.osmand.osm.Node prevWayNode = null;
+		for (RouteSegmentResult s : searchRoute) {
+			// double dist = MapUtils.getDistance(s.startPoint, s.endPoint);
+			Way way = new Way(-1);
+//					String name = String.format("time %.2f ", s.getSegmentTime());
+			String name = s.getDescription();
+			if(s.getTurnType() != null) {
+				name += " (TA " + s.getTurnType().getTurnAngle() + ") ";
+			}
+//					String name = String.format("beg %.2f end %.2f ", s.getBearingBegin(), s.getBearingEnd());
+			way.putTag(OSMTagKey.NAME.getValue(),name);
+			boolean plus = s.getStartPointIndex() < s.getEndPointIndex();
+			int i = s.getStartPointIndex();
+			while (true) {
+				LatLon l = s.getPoint(i);
+				net.osmand.osm.Node n = new net.osmand.osm.Node(l.getLatitude(), l.getLongitude(), -1);
+				if (prevWayNode != null) {
+					if (MapUtils.getDistance(prevWayNode, n) > 0) {
+						System.out.println("Warning not connected road " + " " + s.getObject().id + " dist "
+								+ MapUtils.getDistance(prevWayNode, n));
+					}
+					prevWayNode = null;
+				}
+				way.addNode(n);
+				if (i == s.getEndPointIndex()) {
+					break;
+				}
+				if (plus) {
+					i++;
+				} else {
+					i--;
+				}
+			}
+			if (way.getNodes().size() > 0) {
+				prevWayNode = way.getNodes().get(way.getNodes().size() - 1);
+			}
+			res.add(way);
+		
+		}
+	}
+
+	private RouteSegmentVisitor createSegmentVisitor(final boolean animateRoutingCalculation, final DataTileManager<Entity> points) {
+		return new RouteSegmentVisitor() {
+			
+			private List<RouteSegment> cache = new ArrayList<RouteSegment>();
+			private List<RouteSegment> pollCache = new ArrayList<RouteSegment>();
+			private List<Integer> cacheInt = new ArrayList<Integer>();
+			
+			@Override
+			public void visitSegment(RouteSegment s, int  endSegment, boolean poll) {
+				if(stop) {
+					throw new RuntimeException("Interrupted");
+				}
+				if (!animateRoutingCalculation) {
+					return;
+				}
+				if (!poll && pause) {
+					pollCache.add(s);
+					return;
+				}
+
+				cache.add(s);
+				cacheInt.add(endSegment);
+				if (cache.size() < steps) {
+					return;
+				}
+				if(pause) {
+					registerObjects(points, poll, pollCache, null);
+					pollCache.clear();
+				}
+				registerObjects(points, !poll, cache, cacheInt);
+				cache.clear();
+				cacheInt.clear();
+				redraw();
+				if (pause) {
+					waitNextPress();
+				}
+			}
+
+			private void registerObjects(final DataTileManager<Entity> points, boolean white, List<RouteSegment> registerCache,
+					List<Integer> cacheInt) {
+				for (int l = 0; l < registerCache.size(); l++) {
+					RouteSegment segment = registerCache.get(l);
+					Way way = new Way(-1);
+					way.putTag(OSMTagKey.NAME.getValue(), segment.getTestName());
+					if (white) {
+						way.putTag("color", "white");
+					}
+					int from = cacheInt != null ? segment.getSegmentStart() : segment.getSegmentStart() - 2;
+					int to = cacheInt != null ? cacheInt.get(l) : segment.getSegmentStart() + 2;
+					if(from > to) {
+						int x = from;
+						from = to;
+						to = x;
+					}
+					for (int i = from; i <= to; i++) {
+						if (i >= 0 && i < segment.getRoad().getPointsLength()) {
+							net.osmand.osm.Node n = createNode(segment, i);
+							way.addNode(n);
+						}
+					}
+					LatLon n = way.getLatLon();
+					points.registerObject(n.getLatitude(), n.getLongitude(), way);
+				}
+			}
+
+		};
 	}
 	
 	private net.osmand.osm.Node createNode(RouteSegment segment, int i) {
@@ -789,6 +833,13 @@ public class MapRouterLayer implements MapPanelLayer {
 		if(endRoute != null){
 			int x = map.getMapXForPoint(endRoute.getLongitude());
 			int y = map.getMapYForPoint(endRoute.getLatitude());
+			g.drawOval(x, y, 12, 12);
+			g.fillOval(x, y, 12, 12);
+		}
+		g.setColor(Color.yellow);
+		for(LatLon i : intermediates) {
+			int x = map.getMapXForPoint(i.getLongitude());
+			int y = map.getMapYForPoint(i.getLatitude());
 			g.drawOval(x, y, 12, 12);
 			g.fillOval(x, y, 12, 12);
 		}

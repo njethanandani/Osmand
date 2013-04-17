@@ -49,7 +49,7 @@ public class BinaryInspector {
 		// test cases show info
 		
 		
-//		 inspector(new String[]{/*"-vmap", "-bbox=-121.785,37.35,-121.744,37.33", */"/home/victor/projects/OsmAnd/data/osm-gen/Austria_2.obf"});
+//		 inspector(new String[]{"-vpoi",/* "-bbox=-121.785,37.35,-121.744,37.33", */"/home/victor/projects/OsmAnd/data/osm-gen/Map.obf"});
 		// test case extract parts
 		// test case 
 	}
@@ -407,9 +407,9 @@ public class BinaryInspector {
 					BinaryMapAddressReaderAdapter.VILLAGES_TYPE};
 			for (int j = 0; j < cityType.length; j++) {
 				int type = cityType[j];
-				for (City c : index.getCities(region, null, type)) {
-					println("\t\t" + c + " " + c.getId() + " (" + c.getStreets().size() + ")");
+				for (City c : index.getCities(region, null, type)) {				
 					index.preloadStreets(c, null);
+					println("\t\t" + c + " " + c.getId() + " (" + c.getStreets().size() + ")");
 					for (Street t : c.getStreets()) {
 						if (verbose.contains(t)) {
 							index.preloadBuildings(t, null);

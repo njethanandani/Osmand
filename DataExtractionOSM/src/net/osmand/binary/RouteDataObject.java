@@ -1,5 +1,6 @@
 package net.osmand.binary;
 
+
 import gnu.trove.map.hash.TIntObjectHashMap;
 import net.osmand.binary.BinaryMapRouteReaderAdapter.RouteRegion;
 import net.osmand.binary.BinaryMapRouteReaderAdapter.RouteTypeRule;
@@ -10,7 +11,7 @@ public class RouteDataObject {
 	
 	public final RouteRegion region;
 	// all these arrays supposed to be immutable!
-	// These feilds accessible from C++
+	// These fields accessible from C++
 	public int[] types;
 	public int[] pointsX;
 	public int[] pointsY;
@@ -183,6 +184,10 @@ public class RouteDataObject {
 	}
 
 	public String getHighway() {
+		return getHighway(types, region);
+	}
+	
+	public static String getHighway(int[] types, RouteRegion region) {
 		String highway = null;
 		int sz = types.length;
 		for (int i = 0; i < sz; i++) {
@@ -206,9 +211,17 @@ public class RouteDataObject {
 		}
 		return -1;
 	}
+	
+	public double directionRoute(int startPoint, boolean plus) {
+		// same goes to C++
+		// Victor : the problem to put more than 5 meters that BinaryRoutePlanner will treat
+		// 2 consequent Turn Right as UT and here 2 points will have same turn angle
+		// So it should be fix in both places
+		return directionRoute(startPoint, plus, 5);
+	}
 
 	// Gives route direction of EAST degrees from NORTH ]-PI, PI]
-	public double directionRoute(int startPoint, boolean plus) {
+	public double directionRoute(int startPoint, boolean plus, float dist) {
 		int x = getPoint31XTile(startPoint);
 		int y = getPoint31YTile(startPoint);
 		int nx = startPoint;
@@ -229,8 +242,16 @@ public class RouteDataObject {
 			}
 			px = getPoint31XTile(nx);
 			py = getPoint31YTile(nx);
-			total += Math.abs(px - x) + Math.abs(py - y);
-		} while (total < 100);
+			// translate into meters
+			total += Math.abs(px - x) * 0.011d + Math.abs(py - y) * 0.01863d;
+		} while (total < dist);
 		return -Math.atan2( x - px, y - py );
+	}
+	
+	@Override
+	public String toString() {
+		String name = getName();
+		String rf = getRef();
+		return String.format("Road id %s name %s ref %s", getId()+"", name == null ? "" : name, rf == null ? "" : rf);
 	}
 }

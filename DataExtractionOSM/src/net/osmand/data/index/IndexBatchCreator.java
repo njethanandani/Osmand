@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.FileHandler;
-import java.util.logging.LogManager;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.SimpleFormatter;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -46,11 +46,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
 import rtree.RTree;
 
 
 public class IndexBatchCreator {
 	
+	private static final int INMEM_LIMIT = 600;
+
 	protected static final Log log = LogUtil.getLog(IndexBatchCreator.class);
 	
 	public static final String GEN_LOG_EXT = ".gen.log";
@@ -85,6 +88,9 @@ public class IndexBatchCreator {
 	boolean indexRouting = false;
 	
 	private String wget;
+
+	private DBDialect osmDbDialect;
+	private DBDialect mapDBDialect;
 	
 	public static void main(String[] args) {
 		IndexBatchCreator creator = new IndexBatchCreator();
@@ -241,7 +247,7 @@ public class IndexBatchCreator {
 		String osmDbDialect = process.getAttribute("osmDbDialect");
 		if(osmDbDialect != null && osmDbDialect.length() > 0){
 			try {
-				IndexCreator.dialect = DBDialect.valueOf(osmDbDialect.toUpperCase());
+				this.osmDbDialect = DBDialect.valueOf(osmDbDialect.toUpperCase());
 			} catch (RuntimeException e) {
 			}
 		}
@@ -249,7 +255,7 @@ public class IndexBatchCreator {
 		String mapDbDialect = process.getAttribute("mapDbDialect");
 		if (mapDbDialect != null && mapDbDialect.length() > 0) {
 			try {
-				IndexCreator.mapDBDialect = DBDialect.valueOf(mapDbDialect.toUpperCase());
+				this.mapDBDialect = DBDialect.valueOf(mapDbDialect.toUpperCase());
 			} catch (RuntimeException e) {
 			}
 		}
@@ -439,8 +445,13 @@ public class IndexBatchCreator {
 			} else {
 				rName = Algoritms.capitalizeFirstLetterAndLowercase(rName);
 			}
-			
+			DBDialect osmDb = this.osmDbDialect;
+			if(f.length() / 1024 / 1024 > INMEM_LIMIT && osmDb == DBDialect.SQLITE_IN_MEMORY) {
+				log.warn("Switching SQLITE in memory dialect to SQLITE");
+				osmDb = DBDialect.SQLITE;
+			}
 			IndexCreator indexCreator = new IndexCreator(workDir);
+			indexCreator.setDialects(osmDb, this.mapDBDialect);
 			indexCreator.setIndexAddress(indexAddress);
 			indexCreator.setIndexPOI(indexPOI);
 			indexCreator.setIndexTransport(indexTransport);

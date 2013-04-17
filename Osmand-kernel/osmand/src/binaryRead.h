@@ -10,8 +10,6 @@
 #include <map>
 #include <string>
 #include <stdint.h>
-
-
 #include "mapObjects.h"
 #include "multipolygons.h"
 #include "common.h"
@@ -38,7 +36,7 @@ struct MapTreeBounds {
 		ocean = -1;
 	}
 };
-
+struct RoutingIndex;
 struct RouteSubregion {
 	uint32_t length;
 	uint32_t filePointer;
@@ -48,8 +46,9 @@ struct RouteSubregion {
 	uint32_t top;
 	uint32_t bottom;
 	std::vector<RouteSubregion> subregions;
+	RoutingIndex* routingIndex;
 
-	RouteSubregion() : length(0), filePointer(0), mapDataBlock(0){
+	RouteSubregion(RoutingIndex* ind) : length(0), filePointer(0), mapDataBlock(0), routingIndex(ind){
 	}
 };
 
@@ -78,8 +77,10 @@ struct BinaryPartIndex {
 };
 
 struct RoutingIndex : BinaryPartIndex {
-	UNORDERED(map)< int, tag_value > decodingRules;
+//	UNORDERED(map)< uint32_t, tag_value > decodingRules;
+	vector< tag_value > decodingRules;
 	std::vector<RouteSubregion> subregions;
+	std::vector<RouteSubregion> basesubregions;
 	RoutingIndex() : BinaryPartIndex(ROUTING_INDEX) {
 	}
 
@@ -87,6 +88,9 @@ struct RoutingIndex : BinaryPartIndex {
 		tag_value pair = tag_value(tag, val);
 		// DEFINE hash
 		//encodingRules[pair] = id;
+		while(decodingRules.size() < id + 1){
+			decodingRules.push_back(pair);
+		}
 		decodingRules[id] = pair;
 	}
 };
@@ -102,6 +106,61 @@ struct RouteDataObject {
 
 	UNORDERED(map)<int, std::string > names;
 	vector<pair<uint32_t, uint32_t> > namesIds;
+
+	string getName() {
+		if(names.size() > 0) {
+			return names.begin()->second;
+		}
+		return "";
+	}
+
+	int getSize() {
+		int s = sizeof(this);
+		s += pointsX.capacity()*sizeof(uint32_t);
+		s += pointsY.capacity()*sizeof(uint32_t);
+		s += types.capacity()*sizeof(uint32_t);
+		s += restrictions.capacity()*sizeof(uint64_t);
+		std::vector<std::vector<uint32_t> >::iterator t = pointTypes.begin();
+		for(;t!=pointTypes.end(); t++) {
+			s+= (*t).capacity() * sizeof(uint32_t);
+		}
+		s += namesIds.capacity()*sizeof(pair<uint32_t, uint32_t>);
+		s += names.size()*sizeof(pair<int, string>)*10;
+		return s;
+	}
+
+	double directionRoute(int startPoint, bool plus){
+		// look at comment JAVA
+		return directionRoute(startPoint, plus, 5);
+	}
+
+	// Gives route direction of EAST degrees from NORTH ]-PI, PI]
+	double directionRoute(int startPoint, bool plus, float dist) {
+		int x = pointsX[startPoint];
+		int y = pointsY[startPoint];
+		int nx = startPoint;
+		int px = x;
+		int py = y;
+		double total = 0;
+		do {
+			if (plus) {
+				nx++;
+				if (nx >= pointsX.size()) {
+					break;
+				}
+			} else {
+				nx--;
+				if (nx < 0) {
+					break;
+				}
+			}
+			px = pointsX[nx];
+			py = pointsY[nx];
+			// translate into meters
+			total += abs(px - x) * 0.011 + abs(py - y) * 0.01863;
+		} while (total < dist);
+		return -atan2( (float)x - px, (float) y - py );
+	}
 };
 
 
@@ -175,7 +234,7 @@ struct BinaryMapFile {
 	uint32_t version;
 	uint64_t dateCreated;
 	std::vector<MapIndex> mapIndexes;
-	std::vector<RoutingIndex> routingIndexes;
+	std::vector<RoutingIndex*> routingIndexes;
 	std::vector<BinaryPartIndex*> indexes;
 	int fd;
 	int routefd;
@@ -221,7 +280,7 @@ struct SearchQuery {
 
 	coordinates cacheCoordinates;
 	bool ocean;
-	bool land;
+	bool mixed;
 
 	int numberOfVisitedObjects;
 	int numberOfAcceptedObjects;
@@ -232,10 +291,14 @@ struct SearchQuery {
 			req(req), left(l), right(r), top(t), bottom(b),publisher(publisher) {
 		numberOfAcceptedObjects = numberOfVisitedObjects = 0;
 		numberOfAcceptedSubtrees = numberOfReadSubtrees = 0;
-		ocean = land = false;
+		ocean = mixed = false;
 	}
 	SearchQuery(int l, int r, int t, int b) :
-				req(req), left(l), right(r), top(t), bottom(b) {
+				left(l), right(r), top(t), bottom(b) {
+	}
+
+	SearchQuery(){
+
 	}
 
 	bool publish(MapDataObject* obj) {
@@ -243,9 +306,11 @@ struct SearchQuery {
 	}
 };
 
-void searchRouteRegion(SearchQuery* q, std::vector<RouteDataObject*>& list, RoutingIndex* rs = NULL);
+void searchRouteSubregions(SearchQuery* q, std::vector<RouteSubregion>& tempResult);
 
-ResultPublisher* searchObjectsForRendering(SearchQuery* q, bool skipDuplicates, std::string msgNothingFound);
+void searchRouteDataForSubRegion(SearchQuery* q, std::vector<RouteDataObject*>& list, RouteSubregion* sub);
+
+ResultPublisher* searchObjectsForRendering(SearchQuery* q, bool skipDuplicates, int renderRouteDataFile, std::string msgNothingFound);
 
 BinaryMapFile* initBinaryMapFile(std::string inputName);
 

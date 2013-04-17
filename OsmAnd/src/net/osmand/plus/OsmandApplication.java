@@ -42,11 +42,12 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Handler;
 import android.text.format.DateFormat;
-import android.util.Log;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.Toast;
 
@@ -87,7 +88,7 @@ public class OsmandApplication extends Application {
 		
 		long timeToStart = System.currentTimeMillis();
 		osmandSettings = createOsmandSettingsInstance();
-		routingHelper = new RoutingHelper(osmandSettings, this, player);
+		routingHelper = new RoutingHelper(this, player);
 		manager = new ResourceManager(this);
 		daynightHelper = new DayNightHelper(this);
 		bidforfix = new BidForFixHelper("osmand.net", getString(R.string.default_buttons_support), getString(R.string.default_buttons_cancel));
@@ -154,6 +155,7 @@ public class OsmandApplication extends Application {
 	public PoiFiltersHelper getPoiFilters() {
 		if (poiFilters == null) {
 			poiFilters = new PoiFiltersHelper(this);
+			poiFilters.updateFilters(false);
 		}
 		return poiFilters;
 	}
@@ -359,11 +361,36 @@ public class OsmandApplication extends Application {
 	}
 	
 
-	public synchronized void closeApplication() {
+	public synchronized void closeApplication(final Activity activity) {
+		if (getNavigationService() != null) {
+			Builder bld = new AlertDialog.Builder(activity);
+			bld.setMessage(R.string.background_service_is_enabled_question);
+			bld.setPositiveButton(R.string.default_buttons_yes, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					closeApplicationAnyway(activity);
+				}
+			});
+			bld.setNegativeButton(R.string.default_buttons_no, null);
+			bld.show();
+		} else {
+			closeApplicationAnyway(activity);
+		}
+	}
+
+	private void closeApplicationAnyway(final Activity activity) {
 		if (applicationInitializing) {
 			manager.close();
 		}
 		applicationInitializing = false;
+		if(getNavigationService() != null) {
+			final Intent serviceIntent = new Intent(this, NavigationService.class);
+			stopService(serviceIntent);
+		}
+		// http://stackoverflow.com/questions/2092951/how-to-close-android-application
+		System.runFinalizersOnExit(true);
+		System.exit(0);
+		activity.finish();
 	}
 
 	public synchronized void startApplication() {
@@ -404,19 +431,20 @@ public class OsmandApplication extends Application {
 		try {
 			if (!Version.isBlackberry(this)) {
 				if (osmandSettings.NATIVE_RENDERING_FAILED.get()) {
-					osmandSettings.NATIVE_RENDERING.set(false);
+					osmandSettings.SAFE_MODE.set(true);
 					osmandSettings.NATIVE_RENDERING_FAILED.set(false);
 					warnings.add(getString(R.string.native_library_not_supported));
-				} else if (osmandSettings.NATIVE_RENDERING.get()) {
+				} else if (!osmandSettings.SAFE_MODE.get()) {
 					osmandSettings.NATIVE_RENDERING_FAILED.set(true);
 					startDialog.startTask(getString(R.string.init_native_library), -1);
 					RenderingRulesStorage storage = rendererRegistry.getCurrentSelectedRenderer();
 					boolean initialized = NativeOsmandLibrary.getLibrary(storage) != null;
 					osmandSettings.NATIVE_RENDERING_FAILED.set(false);
 					if (!initialized) {
-						LOG.info("Native library could not loaded!");
-						osmandSettings.NATIVE_RENDERING.set(false);
+						LOG.info("Native library could not be loaded!");
 					}
+				} else {
+					warnings.add(getString(R.string.native_library_not_running));
 				}
 			}
 			warnings.addAll(manager.reloadIndexes(startDialog));
@@ -516,10 +544,18 @@ public class OsmandApplication extends Application {
 				PrintStream printStream = new PrintStream(out);
 				ex.printStackTrace(printStream);
 				StringBuilder msg = new StringBuilder();
-				msg.append(
-						"Exception occured in thread " + thread.toString() + " : "). //$NON-NLS-1$ //$NON-NLS-2$
-						append(DateFormat.format("MMMM dd, yyyy h:mm:ss", System.currentTimeMillis())).append("\n"). //$NON-NLS-1$//$NON-NLS-2$
-						append(new String(out.toByteArray()));
+				msg.append("Version  " + Version.getFullVersion(OsmandApplication.this)+"\n"). //$NON-NLS-1$ 
+					append(DateFormat.format("dd.MM.yyyy h:mm:ss", System.currentTimeMillis()));
+				try {
+					PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+					if (info != null) {
+						msg.append("\nApk Version : ").append(info.versionName).append(" ").append(info.versionCode); //$NON-NLS-1$ //$NON-NLS-2$
+					}
+				} catch (Throwable e) {
+				}
+				msg.append("\n"). //$NON-NLS-1$//$NON-NLS-2$
+					append("Exception occured in thread " + thread.toString() + " : \n"). //$NON-NLS-1$ //$NON-NLS-2$
+					append(new String(out.toByteArray()));
 
 				if (file.getParentFile().canWrite()) {
 					BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));

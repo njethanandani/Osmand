@@ -1,10 +1,64 @@
 <?php
+function loadIndexesFromDir($output, $outputIndexes, $dir, $elementName, $mapNodes){
+	$local_file = basename($_SERVER['PHP_SELF']) == basename(__FILE__);
+	if (is_dir($dir)) {
+		if ($dh = opendir($dir)) {
+			$zip = new ZipArchive();
+			while (($file = readdir($dh)) !== false) {
+				$filename = $dir . $file ; //"./test112.zip";
+				//print("processing file:" . $filename . "\n");
+				if ($zip->open($filename,ZIPARCHIVE::CHECKCONS)!==TRUE) {
+					// echo exit("cannot open <$filename>\n");
+					// print($filename . " cannot open as zip\n");
+					continue;
+				}
+				$indexName=$file;
+
+				$description = $zip->getCommentIndex(0);
+				$stat = $zip->statIndex( 0 );
+				$date= date('d.m.Y',$stat['mtime']);
+				$size=  number_format((filesize($filename) / (1024.0*1024.0)), 1, '.', '');
+				$zip->close();
+                if($local_file) {
+					echo 'Local : '.$indexName.' '.$date.' '.$size.'<br>';
+                }
+				if (isset($mapNodes[$indexName])) {
+					$exdate = DateTime::createFromFormat('d.m.Y', $mapNodes[$indexName]->getAttribute("date"));
+                    $localdate = DateTime::createFromFormat('d.m.Y', $date);
+                                        
+                    if($localdate->getTimestamp() <= $exdate->getTimestamp()) {
+						continue;
+					}	
+					$out = $mapNodes[$indexName];				
+					//if($out -> getAttribute("parts")) {
+						$outputIndexes->removeChild($out);
+						$out = $output->createElement( $elementName);
+						$outputIndexes->appendChild($out);
+					//}
+				} else {
+					$out = $output->createElement( $elementName);
+					$outputIndexes->appendChild($out);
+				}
+				
+				
+				$out -> setAttribute("date", $date);
+				$out -> setAttribute("local", "true");
+				$out -> setAttribute("size", $size);
+				$out -> setAttribute("name", $indexName);
+				$out -> setAttribute("description", $description);
+				//$mapNodes[$indexName] = $out;
+			}
+			closedir($dh);
+		}
+	} else {
+		print($dir . " not a directory!\n");
+	}
+}
 
 function updateGoogleCodeIndexes($update=false) {
-        $local_file = false;
-        if( basename($_SERVER['PHP_SELF']) == basename(__FILE__)) 	{
-	     $update = true;
-	     $local_file = true;
+    $local_file = basename($_SERVER['PHP_SELF']) == basename(__FILE__);
+	if( $local_file) 	{
+    	$update = true;
 	}
 
 	$localFileName='indexes.xml';
@@ -13,8 +67,8 @@ function updateGoogleCodeIndexes($update=false) {
 		return;
 	}
 	if($local_file) {
-	        echo '<h1>File update : </h1> <br>';
-        }
+		echo '<h1>File update : </h1> <br>';
+    }
 
 	$dom = new DomDocument();
 
@@ -107,63 +161,10 @@ function updateGoogleCodeIndexes($update=false) {
 	 }
 	}
 	/// 2. append local indexes
-	$local = new DomDocument();
-	// Open a known directory, and proceed to read its contents
-	$dir='indexes/';
-	if (is_dir($dir)) {
-		if ($dh = opendir($dir)) {
-			$zip = new ZipArchive();
-			while (($file = readdir($dh)) !== false) {
-				$filename = $dir . $file ; //"./test112.zip";
-				//print("processing file:" . $filename . "\n");
-				if ($zip->open($filename,ZIPARCHIVE::CHECKCONS)!==TRUE) {
-					// echo exit("cannot open <$filename>\n");
-					// print($filename . " cannot open as zip\n");
-					continue;
-				}
-				$indexName=$file;
-
-				$description = $zip->getCommentIndex(0);
-				$stat = $zip->statIndex( 0 );
-				$date= date('d.m.Y',$stat['mtime']);
-				$size=  number_format((filesize($filename) / (1024.0*1024.0)), 1, '.', '');
-				$zip->close();
-                if($local_file) {
-				echo 'Local : '.$indexName.' '.$date.' '.$size.'<br>';
-                     }
-				if (isset($mapNodes[$indexName])) {
-					$exdate = DateTime::createFromFormat('d.m.Y', $mapNodes[$indexName]->getAttribute("date"));
-                    $localdate = DateTime::createFromFormat('d.m.Y', $date);
-                    if($localdate->getTimestamp() <= $exdate->getTimestamp()) {
-						continue;
-					}
-					$out = $mapNodes[$indexName];
-					if($out -> getAttribute("parts")) {
-						$outputIndexes->removeChild($out);
-						$out = $output->createElement( "region" );
-						$outputIndexes->appendChild($out);
-					}
-				} else {
-					$out = $output->createElement( "region" );
-					$outputIndexes->appendChild($out);
-				}
-				
-				$out -> setAttribute("date", $date);
-				$out -> setAttribute("local", "true");
-				$out -> setAttribute("size", $size);
-				$out -> setAttribute("name", $indexName);
-				$out -> setAttribute("description", $description);
-				//$mapNodes[$indexName] = $out;
-			}
-			closedir($dh);
-		}
-	} else {
-		print($dir . " not a directory!\n");
-	}
-        if($local_file) {
-	  // header('Content-Type: text/xml');
-	  // echo $output->asXML();
-	}
+		// Open a known directory, and proceed to read its contents
+	
+    loadIndexesFromDir($output, $outputIndexes, 'indexes/', 'region', $mapNodes);
+    loadIndexesFromDir($output, $outputIndexes, 'road-indexes/', 'road_region');
 	$output->save($localFileName);
 }
 

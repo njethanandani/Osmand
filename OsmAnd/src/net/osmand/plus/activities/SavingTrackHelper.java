@@ -140,17 +140,21 @@ public class SavingTrackHelper extends SQLiteOpenHelper {
 	public boolean hasDataToSave() {
 		SQLiteDatabase db = getWritableDatabase();
 		if (db != null) {
-			Cursor q = db.query(false, TRACK_NAME, new String[0], null, null, null, null, null, null);
-			boolean has = q.moveToFirst();
-			q.close();
-			if (has) {
-				return true;
-			}
-			q = db.query(false, POINT_NAME, new String[0], null, null, null, null, null, null);
-			has = q.moveToFirst();
-			q.close();
-			if (has) {
-				return true;
+			try {
+				Cursor q = db.query(false, TRACK_NAME, new String[0], null, null, null, null, null, null);
+				boolean has = q.moveToFirst();
+				q.close();
+				if (has) {
+					return true;
+				}
+				q = db.query(false, POINT_NAME, new String[0], null, null, null, null, null, null);
+				has = q.moveToFirst();
+				q.close();
+				if (has) {
+					return true;
+				}
+			} finally {
+				db.close();
 			}
 		}
 
@@ -195,14 +199,19 @@ public class SavingTrackHelper extends SQLiteOpenHelper {
 		}
 
 		SQLiteDatabase db = getWritableDatabase();
-		if (db != null && warnings.isEmpty()) {
-			// remove all from db
-			db.execSQL("DELETE FROM " + TRACK_NAME + " WHERE " + TRACK_COL_DATE + " <= ?", new Object[] { System.currentTimeMillis() }); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			db.execSQL("DELETE FROM " + POINT_NAME + " WHERE " + POINT_COL_DATE + " <= ?", new Object[] { System.currentTimeMillis() }); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			// delete all
-//			db.execSQL("DELETE FROM " + TRACK_NAME + " WHERE 1 = 1", new Object[] { }); //$NON-NLS-1$ //$NON-NLS-2$
-//			db.execSQL("DELETE FROM " + POINT_NAME + " WHERE 1 = 1", new Object[] { }); //$NON-NLS-1$ //$NON-NLS-2$
+		if (db != null && warnings.isEmpty() && db.isOpen()) {
+			try {
+				// remove all from db
+				db.execSQL("DELETE FROM " + TRACK_NAME + " WHERE " + TRACK_COL_DATE + " <= ?", new Object[] { System.currentTimeMillis() }); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				db.execSQL("DELETE FROM " + POINT_NAME + " WHERE " + POINT_COL_DATE + " <= ?", new Object[] { System.currentTimeMillis() }); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				// delete all
+				//			db.execSQL("DELETE FROM " + TRACK_NAME + " WHERE 1 = 1", new Object[] { }); //$NON-NLS-1$ //$NON-NLS-2$
+				//			db.execSQL("DELETE FROM " + POINT_NAME + " WHERE 1 = 1", new Object[] { }); //$NON-NLS-1$ //$NON-NLS-2$
+			} finally {
+				db.close();
+			}
 		}
+		distance = 0;
 		return warnings;
 	}
 
@@ -255,9 +264,13 @@ public class SavingTrackHelper extends SQLiteOpenHelper {
 	public Map<String, GPXFile> collectRecordedData() {
 		Map<String, GPXFile> data = new LinkedHashMap<String, GPXFile>();
 		SQLiteDatabase db = getReadableDatabase();
-		if(db != null) {
-			collectDBPoints(db, data);
-			collectDBTracks(db, data);
+		if (db != null && db.isOpen()) {
+			try {
+				collectDBPoints(db, data);
+				collectDBTracks(db, data);
+			} finally {
+				db.close();
+			}
 		}
 		return data;
 	}
@@ -391,7 +404,9 @@ public class SavingTrackHelper extends SQLiteOpenHelper {
 	}
 	
 	public void insertData(double lat, double lon, double alt, double speed, double hdop, long time, OsmandSettings settings){
-		if ((time - lastTimeUpdated > settings.SAVE_TRACK_INTERVAL.get() * 1000)) {
+		//* 1000 in next line seems to be wrong with new IntervalChooseDialog
+		//if (time - lastTimeUpdated > settings.SAVE_TRACK_INTERVAL.get() * 1000) {
+		if (time - lastTimeUpdated > settings.SAVE_TRACK_INTERVAL.get()) {
 			execWithClose(updateScript, new Object[] { lat, lon, alt, speed, hdop, time });
 			boolean newSegment = false;
 			if (lastPoint == null || (time - lastTimeUpdated) > 180 * 1000) {

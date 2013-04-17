@@ -7,7 +7,6 @@ import net.osmand.Version;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.OsmandPlugin;
 import net.osmand.plus.OsmandSettings;
-import net.osmand.plus.OsmandSettings.CommonPreference;
 import net.osmand.plus.OsmandSettings.OsmandPreference;
 import net.osmand.plus.R;
 import net.osmand.plus.activities.MapActivity;
@@ -69,12 +68,13 @@ public class OsmandExtraSettings extends OsmandPlugin {
 		textSize.setStateChangeListener(new Runnable() {
 			@Override
 			public void run() {
-				final Float[] floatValues = new Float[] {0.6f, 0.8f, 1.0f, 1.2f, 1.5f};
+				final Float[] floatValues = new Float[] {0.6f, 0.8f, 1.0f, 1.2f, 1.5f, 1.75f, 2f};
 				String[] entries = new String[floatValues.length];
 				for (int i = 0; i < floatValues.length; i++) {
 					entries[i] = (int) (floatValues[i] * 100) +" %";
 				}
 				Builder b = new AlertDialog.Builder(view.getContext());
+				b.setTitle(R.string.map_text_size);
 				int i = Arrays.binarySearch(floatValues, textSizePref.get());
 				b.setSingleChoiceItems(entries, i, new OnClickListener() {
 					@Override
@@ -107,19 +107,17 @@ public class OsmandExtraSettings extends OsmandPlugin {
 				mapInfoLayer.recreateControls();
 			}
 		});
-
-		final MapInfoControlRegInfo fluorescent = mapInfoControls.registerAppearanceWidget(R.drawable.widget_fluorescent_routes, R.string.map_widget_fluorescent,
-				"fluorescent", view.getSettings().FLUORESCENT_OVERLAYS);
-		fluorescent.setStateChangeListener(new Runnable() {
+		
+		final MapInfoControlRegInfo showDestinationArrow = mapInfoControls.registerAppearanceWidget(R.drawable.widget_show_destination_arrow, R.string.map_widget_show_destination_arrow,
+				"show_destination_arrow", view.getSettings().SHOW_DESTINATION_ARROW);
+		showDestinationArrow.setStateChangeListener(new Runnable() {
 			@Override
 			public void run() {
-				view.getSettings().FLUORESCENT_OVERLAYS.set(!view.getSettings().FLUORESCENT_OVERLAYS.get());
-				view.refreshMap();
+				view.getSettings().SHOW_DESTINATION_ARROW.set(!view.getSettings().SHOW_DESTINATION_ARROW.get());
+				mapInfoLayer.recreateControls();
 			}
 		});
-		
-		// FIXME delete strings from this code
-//		final CommonPreference<Integer> posPref = view.getSettings().POSITION_ON_MAP;
+
 //		final MapInfoControlRegInfo posMap = mapInfoControls.registerAppearanceWidget(R.drawable.widget_position_marker, R.string.position_on_map, 
 //				"position_on_map", textSizePref);
 //		posMap.setStateChangeListener(new Runnable() {

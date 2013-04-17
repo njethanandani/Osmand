@@ -197,7 +197,7 @@ public class OsmandMapTileView extends SurfaceView implements IMapDownloaderCall
 		return application.accessibilityEnabled() ? false : super.onKeyDown(keyCode, event);
 	}
 
-	public void addLayer(OsmandMapLayer layer, float zOrder) {
+	public synchronized void addLayer(OsmandMapLayer layer, float zOrder) {
 		int i = 0;
 		for (i = 0; i < layers.size(); i++) {
 			if (zOrders.get(layers.get(i)) > zOrder) {
@@ -209,7 +209,7 @@ public class OsmandMapTileView extends SurfaceView implements IMapDownloaderCall
 		zOrders.put(layer, zOrder);
 	}
 
-	public void removeLayer(OsmandMapLayer layer) {
+	public synchronized void removeLayer(OsmandMapLayer layer) {
 		layers.remove(layer);
 		zOrders.remove(layer);
 		layer.destroyLayer();
@@ -283,9 +283,15 @@ public class OsmandMapTileView extends SurfaceView implements IMapDownloaderCall
 	}
 	
 	public void setZoom(float zoom) {
-		if (mainLayer != null && zoom <= mainLayer.getMaximumShownMapZoom() && zoom >= mainLayer.getMinimumShownMapZoom()) {
+		if (mainLayer != null && zoom <= mainLayer.getMaximumShownMapZoom() + 0.01 && zoom >= mainLayer.getMinimumShownMapZoom() - 0.01) {
 			animatedDraggingThread.stopAnimating();
-			this.zoom = zoom;
+			// avoid round error
+			if(zoom < Math.round(zoom)){
+				this.zoom = zoom + 0.001f;	
+			} else {
+				this.zoom = zoom;
+			}
+			
 			refreshMap();
 		}
 	}
@@ -343,7 +349,7 @@ public class OsmandMapTileView extends SurfaceView implements IMapDownloaderCall
 	public boolean isZooming(){
 		// zooming scale
 		float diff = (zoom - getZoom()) * ZOOM_DELTA;
-		if(Math.abs(diff - Math.round(diff)) < 0.0001) {
+		if(Math.abs(diff - Math.round(diff)) < 0.02) {
 			return false;
 		}
 		return true;
@@ -772,7 +778,7 @@ public class OsmandMapTileView extends SurfaceView implements IMapDownloaderCall
 	}
 
 
-		public LatLon getLatLonFromScreenPoint(float x, float y) {
+	public LatLon getLatLonFromScreenPoint(float x, float y) {
 		float dx = x - getCenterPointX();
 		float dy = y - getCenterPointY();
 		float fy = calcDiffTileY(dx, dy);

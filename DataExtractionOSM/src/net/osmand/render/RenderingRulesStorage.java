@@ -51,8 +51,10 @@ public class RenderingRulesStorage {
 	protected TIntObjectHashMap<RenderingRule>[] tagValueGlobalRules = new TIntObjectHashMap[LENGTH_RULES];
 	
 	protected Map<String, RenderingRule> renderingAttributes = new LinkedHashMap<String, RenderingRule>();
+	protected Map<String, String> renderingConstants= new LinkedHashMap<String, String>();
 	
 	private String renderingName;
+	private String internalRenderingName;
 	
 	
 	public static interface RenderingRulesStorageResolver {
@@ -60,12 +62,13 @@ public class RenderingRulesStorage {
 		RenderingRulesStorage resolve(String name, RenderingRulesStorageResolver ref) throws SAXException;
 	}
 	
-	public RenderingRulesStorage(){
-		// register empty string as 0
+	public RenderingRulesStorage(String name, Map<String, String> renderingConstants){
 		getDictionaryValue("");
+		this.renderingName = name;
+		if(renderingConstants != null) {
+			this.renderingConstants.putAll(renderingConstants);
+		}
 	}
-	
-	
 	
 	public int getDictionaryValue(String val) {
 		if(dictionaryMap.containsKey(val)){
@@ -85,6 +88,10 @@ public class RenderingRulesStorage {
 	
 	public String getName() {
 		return renderingName;
+	}
+	
+	public String getInternalRenderingName() {
+		return internalRenderingName;
 	}
 	
 	
@@ -219,6 +226,7 @@ public class RenderingRulesStorage {
 		private RenderingRulesStorage dependsStorage;
 		
 		
+		
 		public RenderingRulesHandler(SAXParser parser, RenderingRulesStorageResolver resolver){
 			this.parser = parser;
 			this.resolver = resolver;
@@ -311,6 +319,10 @@ public class RenderingRulesStorage {
 					prop.setPossibleValues(attributes.getValue("possibleValues").split(","));
 				}
 				PROPS.registerRule(prop);
+			} else if("renderingConstant".equals(name)){ //$NON-NLS-1$
+				if(!renderingConstants.containsKey(attributes.getValue("name"))){
+					renderingConstants.put(attributes.getValue("name"), attributes.getValue("value"));
+				}
 			} else if("renderingStyle".equals(name)){ //$NON-NLS-1$
 				String depends = attributes.getValue("depends");
 				if(depends != null && depends.length()> 0){
@@ -323,7 +335,7 @@ public class RenderingRulesStorage {
 					PROPS = new RenderingRuleStorageProperties(dependsStorage.PROPS);
 					
 				}
-				renderingName = attributes.getValue("name");
+				internalRenderingName = attributes.getValue("name");
 				
 			} else if("renderer".equals(name)){ //$NON-NLS-1$
 				throw new SAXException("Rendering style is deprecated and no longer supported.");
@@ -340,7 +352,15 @@ public class RenderingRulesStorage {
 		private Map<String, String> parseAttributes(Attributes attributes, Map<String, String> m) {
 			for (int i = 0; i < attributes.getLength(); i++) {
 				String name = parser.isNamespaceAware() ? attributes.getLocalName(i) : attributes.getQName(i);
-				m.put(name, attributes.getValue(i));
+				String vl = attributes.getValue(i);
+				if(vl != null && vl.startsWith("$")) {
+					String cv = vl.substring(1);
+					if(!renderingConstants.containsKey(cv)){
+						throw new IllegalStateException("Rendering constant '" + cv + "' was not specified.");
+					}
+					vl = renderingConstants.get(cv);
+				}
+				m.put(name, vl);
 			}
 			return m;
 		}
@@ -390,6 +410,13 @@ public class RenderingRulesStorage {
 		return renderingAttributes.get(attribute);
 	}
 	
+	public String[] getRenderingAttributeNames() {
+		return renderingAttributes.keySet().toArray(new String[renderingAttributes.size()]);
+	}
+	public RenderingRule[] getRenderingAttributeValues() {
+		return renderingAttributes.values().toArray(new RenderingRule[renderingAttributes.size()]);
+	}
+	
 	public RenderingRule[] getRules(int state){
 		if(state >= tagValueGlobalRules.length ||  tagValueGlobalRules[state] == null) {
 			return new RenderingRule[0];
@@ -412,11 +439,11 @@ public class RenderingRulesStorage {
 	
 	
 	public static void main(String[] args) throws SAXException, IOException {
-		RenderingRulesStorage storage = new RenderingRulesStorage();
+		RenderingRulesStorage storage = new RenderingRulesStorage("test", null);
 		final RenderingRulesStorageResolver resolver = new RenderingRulesStorageResolver() {
 			@Override
 			public RenderingRulesStorage resolve(String name, RenderingRulesStorageResolver ref) throws SAXException {
-				RenderingRulesStorage depends = new RenderingRulesStorage();
+				RenderingRulesStorage depends = new RenderingRulesStorage("test", null);
 				try {
 					depends.parseRulesFromXmlInputStream(RenderingRulesStorage.class.getResourceAsStream(name+".render.xml"),
 							ref);

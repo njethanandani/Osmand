@@ -74,7 +74,7 @@
 		<type tag="highway" value="bus_stop" minzoom="15" poi_category="transportation"/>
 		<type tag="highway" value="platform" minzoom="15" poi_category="transportation"/>
 		<type tag="highway" value="turning_circle" minzoom="16" poi_category="transportation"/>
-		<type tag="highway" value="emergency_access_point" minzoom="16" poi_category="transportation"/>
+		<type tag="highway" value="emergency_access_point" minzoom="16" poi_category="emergency"/>
 		<type tag="highway" value="speed_camera" minzoom="16" poi_category="transportation"/>
 		<type tag="highway" value="street_lamp" minzoom="16" />
 		
@@ -319,6 +319,7 @@
 		<type tag="shop" value="boutique" minzoom="15" />
 		<type tag="shop" value="butcher" minzoom="15" />
 		<type tag="shop" value="car" minzoom="15" />
+		<type tag="shop" value="car_parts" minzoom="15" />
 		<type tag="shop" value="car_repair" minzoom="15" />
 		<type tag="shop" value="charity" minzoom="15" />
 		<type tag="shop" value="chemist" minzoom="15" />
@@ -379,6 +380,7 @@
 		<type tag="emergency" value="fire_hose" minzoom="15" />
 		<type tag="emergency" value="fire_hydrant" minzoom="15" />
 		<type tag="emergency" value="phone" minzoom="15" />
+		<type tag="emergency" value="access_point" minzoom="15" />
 		<type tag="amenity" value="emergency_phone" target_tag="emergency" target_value="phone" minzoom="15" />
 		<type tag="emergency" value="siren" minzoom="15" />
 		<type tag="amenity" value="fire_station" minzoom="15" poi_category="emergency"/>
@@ -494,9 +496,14 @@
 		<type tag="natural" value="wood" minzoom="8" />
 		<type tag="landuse" value="wood" minzoom="8" 
 				target_tag="natural" target_value="wood" poi_category="natural" />
-		<type tag="contour" value="elevation" minzoom="8" />
+		<type tag="contour" value="elevation" minzoom="11" />
 	</category>
-	
+	<category name="contourtype">
+		<type tag="contourtype" value="10m" minzoom="11" additional="true"/>
+		<type tag="contourtype" value="20m" minzoom="11" additional="true"/>
+		<type tag="contourtype" value="50m" minzoom="11" additional="true"/>
+		<type tag="contourtype" value="100m" minzoom="11" additional="true"/>
+	</category>
 	<category name="geocache" poi_tag="geocache" poi_category="geocache">
 		<type tag="geocache" value="found" minzoom="15" />
 		<type tag="geocache" value="not found" minzoom="15" />
@@ -599,6 +606,15 @@
 	</category>
 
 
+	<category name="internet_access" poi_tag="internet_access"  poi_prefix="internet_access_" poi_category="other">
+		<type tag="internet_access" value="wifi" minzoom="15" />
+		<type tag="internet_access" value="wlan" minzoom="15" />
+		<type tag="internet_access" value="terminal" minzoom="15" />
+		<type tag="internet_access" value="wired" minzoom="15" />
+		<type tag="internet_access" value="public" minzoom="15" />
+		<type tag="internet_access" value="service" minzoom="15" />
+	</category>
+
 
 	<!-- administrative place-->
 	<category name="administrative" poi_tag="place" poi_category="administrative" >
@@ -690,9 +706,6 @@
 	</category>
 	
 	<category name="osmwiki" poi_tag="osmwiki" poi_category="osmwiki"/>
-	
-	<category name="tiles">
-	</category>
 	
 	<category name="tiles">
 	</category>

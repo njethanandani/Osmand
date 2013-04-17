@@ -4,7 +4,6 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.Random;
 
-import net.osmand.AndroidUtils;
 import net.osmand.Version;
 import net.osmand.access.AccessibleAlertBuilder;
 import net.osmand.plus.OsmandApplication;
@@ -30,6 +29,8 @@ import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -103,7 +104,7 @@ public class MainMenuActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if(resultCode == APP_EXIT_CODE){
-			finish();
+			getMyApplication().closeApplication(this);
 		}
 	}
 	
@@ -178,7 +179,6 @@ public class MainMenuActivity extends Activity {
 			Intent intent = getIntent();
 			if(intent.getExtras() != null && intent.getExtras().containsKey(APP_EXIT_KEY)){
 				exit = true;
-				finish();
 			}
 		}
 		
@@ -238,23 +238,25 @@ public class MainMenuActivity extends Activity {
 		closeButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				getMyApplication().closeApplication();
-				//moveTaskToBack(true);
-				activity.finish();
-				// this is different from MapActivity close...
-				if (getMyApplication().getNavigationService() == null) {
-					//http://stackoverflow.com/questions/2092951/how-to-close-android-application
-					System.runFinalizersOnExit(true);
-					System.exit(0);
-				}
+				getMyApplication().closeApplication(activity);
 			}
 		});
-		AndroidUtils.expandClickableArea(closeButton, 1,1,3,3);
-
+		/*
+		View searchButton = window.findViewById(R.id.SearchButton);
+		searchButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				final Intent search = new Intent(activity, OsmandIntents.getSearchActivity());
+				search.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				activity.startActivity(search);
+			}
+		});
+		*/
 		if(exit){
+			getMyApplication().closeApplication(activity);
 			return;
 		}
-		OsmandApplication app = ((OsmandApplication) getApplication());
+		OsmandApplication app = getMyApplication();
 		// restore follow route mode
 		if(app.getSettings().FOLLOW_THE_ROUTE.get() && !app.getRoutingHelper().isRouteCalculated()){
 			final Intent mapIndent = new Intent(this, OsmandIntents.getMapActivity());
@@ -391,5 +393,20 @@ public class MainMenuActivity extends Activity {
         return super.onKeyDown(keyCode, event);
     }
 	
+    
+    @Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+    	menu.add(0, 0, 0, R.string.exit_Button);
+    	return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (item.getItemId() == 0) {
+			getMyApplication().closeApplication(this);
+			return true;
+		}
+		return false;
+	}
 	
 }

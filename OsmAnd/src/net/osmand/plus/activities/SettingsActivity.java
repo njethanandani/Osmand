@@ -135,15 +135,16 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 		return defValue;
 	}
 
-	public String getStringPropertyDescription(String propertyName, String defValue) {
+	public static String getStringPropertyDescription(Context ctx, String propertyName, String defValue) {
 		try {
 			Field f = R.string.class.getField("rendering_attr_" + propertyName + "_description");
 			if (f != null) {
 				Integer in = (Integer) f.get(null);
-				return getString(in);
+				return ctx.getString(in);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			System.err.println(e.getMessage());
 		}
 		return defValue;
 	}
@@ -275,11 +276,12 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 		
 		PreferenceCategory cat = (PreferenceCategory) screen.findPreference("global_app_settings");
 		if (!Version.isBlackberry(this)) {
-			CheckBoxPreference nativeCheckbox = createCheckBoxPreference(osmandSettings.NATIVE_RENDERING, R.string.native_rendering,
-					R.string.vector_maps_may_display_faster_on_some_devices);
+			CheckBoxPreference nativeCheckbox = createCheckBoxPreference(osmandSettings.SAFE_MODE, R.string.safe_mode,
+					R.string.safe_mode_description);
 			// disable the checkbox if the library cannot be used
 			if ((NativeOsmandLibrary.isLoaded() && !NativeOsmandLibrary.isSupported()) || osmandSettings.NATIVE_RENDERING_FAILED.get()) {
 				nativeCheckbox.setEnabled(false);
+				nativeCheckbox.setChecked(true);
 			}
 			cat.addPreference(nativeCheckbox);
 
@@ -318,24 +320,31 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 				new Integer[] {ActivityInfo.SCREEN_ORIENTATION_PORTRAIT, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE, ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED});
 		
 		
-		MetricsConstants[] mvls  = new MetricsConstants[] {MetricsConstants.KILOMETERS_AND_METERS, MetricsConstants.MILES_AND_FOOTS}; //MetricsConstants.values();
+		MetricsConstants[] mvls  = new MetricsConstants[] {MetricsConstants.KILOMETERS_AND_METERS, MetricsConstants.MILES_AND_FOOTS, MetricsConstants.MILES_AND_YARDS}; //MetricsConstants.values();
 		entries = new String[mvls.length];
 		for(int i=0; i<entries.length; i++){
 			entries[i] = mvls[i].toHumanString(this);
 		}
 		registerListPreference(osmandSettings.METRIC_SYSTEM, screen, entries, mvls);
 		
+		String incompleteSuffix = " (" + getString(R.string.incomplete_locale) + ")";
 		//getResources().getAssets().getLocales();
 		entrieValues = new String[] { "",
-				"en", "cs",  "nl", "fr","ka","de",
-				"hu", "it", "jp", "ko", "lv","mr",
-				"no", "pl", "pt", "ro","ru", "sk", 
-				"es","vi" };
+				"en", "af", "hy", "eu", "bs", "bg",
+				"ca", "cs", "nl", "fi", "fr", "ka",
+				"de", "el", "he", "hi", "hu", "id",
+				"it", "ja", "ko", "lv", "lt", "mr",
+				"no", "pl", "pt", "ro", "ru", "sk",
+				"sl", "es", "sv", "tr", "uk", "vi",
+				"cy" };
 		entries = new String[] { getString(R.string.system_locale), 
-				"English", "Czech",  "Dutch","French","Georgian","German", 
-				"Hungarian", "Italian", "Japanese", "Korean", "Latvian", "Marathi",
-				"Norwegian", "Polish", "Portuguese", "Romanian", "Russian", "Slovak", 
-				"Spanish", "Vietnamese" };
+				"English", "Afrikaans", "Armenian" + incompleteSuffix, "Basque" + incompleteSuffix, "Bosnian" + incompleteSuffix, "Bulgarian" + incompleteSuffix,
+				"Catalan", "Czech", "Dutch", "Finnish" + incompleteSuffix, "French", "Georgian",
+				"German", "Greek", "Hebrew", "Hindi" + incompleteSuffix, "Hungarian", "Indonesian" + incompleteSuffix,
+				"Italian", "Japanese" + incompleteSuffix, "Korean" + incompleteSuffix, "Latvian", "Lithuanian", "Marathi",
+				"Norwegian" + incompleteSuffix, "Polish", "Portuguese", "Romanian", "Russian", "Slovak",
+				"Slovenian" + incompleteSuffix, "Spanish", "Swedish" + incompleteSuffix, "Turkish" + incompleteSuffix, "Ukrainian" + incompleteSuffix, "Vietnamese",
+				"Welsh" + incompleteSuffix };
 		registerListPreference(osmandSettings.PREFERRED_LOCALE, screen, entries, entrieValues);
 
 		
@@ -550,7 +559,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 		OsmandPreference<String> editPref = editTextPreferences.get(preference.getKey());
 		if (boolPref != null) {
 			boolPref.set((Boolean) newValue);
-			if (boolPref.getId().equals(osmandSettings.NATIVE_RENDERING.getId())) {
+			if (boolPref.getId().equals(osmandSettings.SAFE_MODE.getId())) {
 				if (((Boolean) newValue).booleanValue()) {
 					loadNativeLibrary();
 				}
@@ -751,6 +760,7 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 				@Override
 				public void onDismiss(DialogInterface dialog) {
 					osmandSettings.APPLICATION_MODE.set(appMode);
+					updateAllSettings();
 				}
 			});
 		} else if (preference instanceof PreferenceScreen) {
@@ -824,9 +834,9 @@ public class SettingsActivity extends PreferenceActivity implements OnPreference
 					osmandSettings.AVOID_FERRIES, osmandSettings.AVOID_UNPAVED_ROADS, osmandSettings.AVOID_MOTORWAY });
 			return true;
 		} else if (preference == showAlarms) {
-			showBooleanSettings(new String[] { getString(R.string.show_cameras), getString(R.string.show_speed_limits),
-					getString(R.string.show_lanes) }, new OsmandPreference[] { osmandSettings.SHOW_CAMERAS,
-					osmandSettings.SHOW_SPEED_LIMITS, osmandSettings.SHOW_LANES });
+			showBooleanSettings(new String[] { getString(R.string.show_speed_limits), getString(R.string.show_cameras), 
+					getString(R.string.show_lanes) }, new OsmandPreference[] { osmandSettings.SHOW_SPEED_LIMITS, 
+					osmandSettings.SHOW_CAMERAS, osmandSettings.SHOW_LANES });
 			return true;
 		} else if (preference == saveDiagnosticsData) {
                     SavingTrackHelper helper = getMyApplication().getSavingTrackHelper();

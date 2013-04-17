@@ -1269,6 +1269,15 @@ public class BinaryMapIndexReader {
 		return request;
 	}
 	
+	public static SearchRequest<RouteDataBorderLinePoint> buildSearchRouteBorderRequest(int sleft, int sright, int stop, int sbottom){
+		SearchRequest<RouteDataBorderLinePoint> request = new SearchRequest<RouteDataBorderLinePoint>();
+		request.left = sleft;
+		request.right = sright;
+		request.top = stop;
+		request.bottom = sbottom;
+		return request;
+	}
+	
 	
 	public static SearchRequest<Amenity> buildSearchPoiRequest(int x, int y, String nameFilter, int sleft, int sright, int stop, int sbottom, ResultMatcher<Amenity> resultMatcher){
 		SearchRequest<Amenity> request = new SearchRequest<Amenity>();
@@ -1959,18 +1968,42 @@ public class BinaryMapIndexReader {
 		}));
 	}
 	
-	public void initRouteRegionsIfNeeded(SearchRequest<RouteDataObject> req) throws IOException {
-		routeAdapter.initRouteTypesIfNeeded(req);
-	}
-
-	public void searchRouteIndex(SearchRequest<RouteDataObject> req, List<RouteSubregion> list) throws IOException {
+	
+	public List<RouteSubregion> searchRouteIndexTree(SearchRequest<RouteDataObject> req, List<RouteSubregion> list) throws IOException {
 		req.numberOfVisitedObjects = 0;
 		req.numberOfAcceptedObjects = 0;
 		req.numberOfAcceptedSubtrees = 0;
 		req.numberOfReadSubtrees = 0;
 		if(routeAdapter != null){
-			initRouteRegionsIfNeeded(req);
-			routeAdapter.searchRouteRegion(req, list);
+			routeAdapter.initRouteTypesIfNeeded(req, list);
+			return routeAdapter.searchRouteRegionTree(req, list, new ArrayList<BinaryMapRouteReaderAdapter.RouteSubregion>());
+		}
+		return Collections.emptyList();
+	}
+
+	public void loadRouteIndexData(List<RouteSubregion> toLoad, ResultMatcher<RouteDataObject> matcher) throws IOException {
+		if(routeAdapter != null){
+			routeAdapter.loadRouteRegionData(toLoad, matcher);
+		}
+	}
+	
+	public List<RouteDataBorderLinePoint> searchBorderPoints(SearchRequest<RouteDataBorderLinePoint> req, RouteRegion r) throws IOException {
+		if(routeAdapter != null){
+			routeAdapter.searchBorderPoints(req, r);
+		}
+		return Collections.emptyList();
+	}
+	
+	public List<RouteDataObject> loadRouteIndexData(RouteSubregion rs) throws IOException {
+		if(routeAdapter != null){
+			return routeAdapter.loadRouteRegionData(rs);
+		}
+		return Collections.emptyList();
+	}
+	
+	public void initRouteRegion(RouteRegion routeReg) throws IOException {
+		if(routeAdapter != null){
+			routeAdapter.initRouteRegion(routeReg);
 		}
 	}
 	

@@ -4,6 +4,7 @@ import java.util.Map;
 
 
 import net.osmand.LogUtil;
+import net.osmand.access.AccessibleToast;
 import net.osmand.data.Amenity;
 import net.osmand.data.AmenityType;
 import net.osmand.osm.EntityInfo;
@@ -11,10 +12,15 @@ import net.osmand.osm.MapRenderingTypes;
 import net.osmand.osm.MapUtils;
 import net.osmand.osm.Node;
 import net.osmand.osm.OSMSettings.OSMTagKey;
+import net.osmand.plus.AmenityIndexRepositoryOdb;
+import net.osmand.plus.OsmandApplication;
+import net.osmand.plus.R;
 
 import org.apache.commons.logging.Log;
 
+import android.app.Activity;
 import android.content.Context;
+import android.widget.Toast;
 
 public class OpenstreetmapLocalUtil extends AbstractOpenstreetmapUtil {
 	
@@ -25,10 +31,10 @@ public class OpenstreetmapLocalUtil extends AbstractOpenstreetmapUtil {
 
 	public final static Log log = LogUtil.getLog(OpenstreetmapLocalUtil.class);
 
-	public OpenstreetmapLocalUtil(Context uiContext){
+	public OpenstreetmapLocalUtil(Context uiContext) {
 		this.ctx = uiContext;
 		this.db = new OpenstreetmapsDbHelper(ctx);
-		this.nextid = Math.min(-2,db.getMinID());
+		this.nextid = Math.min(-2, db.getMinID());
 	}
 
 	@Override
@@ -37,21 +43,36 @@ public class OpenstreetmapLocalUtil extends AbstractOpenstreetmapUtil {
 	}
 	
 	@Override
-	public Node commitNodeImpl(OsmPoint.Action action, Node n, EntityInfo info, String comment){
+	public Node commitNodeImpl(OsmPoint.Action action, Node n, EntityInfo info, String comment, boolean closeChangeSet){
 		Node newNode = n;
 		if (n.getId() == -1) {
-			newNode = new Node(n,--nextid); //generate local id for the created node
+			newNode = new Node(n, --nextid); // generate local id for the created node
 		}
 		OpenstreetmapPoint p = new OpenstreetmapPoint();
 		p.setEntity(newNode);
 		p.setAction(action);
 		p.setComment(comment);
 		if (p.getAction() == OsmPoint.Action.DELETE && newNode.getId() < 0) { //if it is our local poi
-			db.deleteAllPOIModifications(p.getId());
+			db.deletePOI(p);
 		} else {
 			db.addOpenstreetmap(p);
 		}
 		return newNode;
+	}
+	
+	@Override
+	protected void showMessageAfterCommit(Activity ctx, final OsmandApplication app, final AmenityIndexRepositoryOdb repo) {
+		ctx.runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				if (repo == null) {
+					AccessibleToast.makeText(app, app.getString(R.string.update_poi_no_offline_poi_index), Toast.LENGTH_LONG).show();
+				} else {
+					AccessibleToast.makeText(app, app.getString(R.string.update_poi_does_not_change_indexes), Toast.LENGTH_LONG).show();
+				}
+			}
+		});
 	}
 	
 	@Override
@@ -96,6 +117,10 @@ public class OpenstreetmapLocalUtil extends AbstractOpenstreetmapUtil {
 			return entity;
 		}
 		return null;
+	}
+
+	@Override
+	public void closeChangeSet() {
 	}
 	
 }

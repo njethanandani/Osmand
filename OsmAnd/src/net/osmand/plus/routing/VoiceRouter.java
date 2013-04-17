@@ -189,11 +189,19 @@ public class VoiceRouter {
 		
 		NextDirectionInfo nextInfo = router.getNextRouteDirectionInfo(new NextDirectionInfo(), true);
 		// after last turn say:
-		if (nextInfo == null || nextInfo.directionInfo.distance == 0) {
+		if (nextInfo == null || nextInfo.directionInfo == null || nextInfo.directionInfo.distance == 0) {
 			// if(currentStatus <= STATUS_UNKNOWN && currentDirection > 0){ This caused this prompt to be suppressed when coming back from a
-			// UTwp situation
 			if (currentStatus <= STATUS_UNKNOWN) {
 				if (playGoAheadToDestination()) {
+					currentStatus = STATUS_TOLD;
+					playGoAheadDist = 0;
+				}
+			}
+			return;
+		}
+		if(nextInfo.intermediatePoint){
+			if (currentStatus <= STATUS_UNKNOWN) {
+				if (playGoAheadToIntermediate()) {
 					currentStatus = STATUS_TOLD;
 					playGoAheadDist = 0;
 				}
@@ -233,7 +241,7 @@ public class VoiceRouter {
 			}
 		}
 
-		NextDirectionInfo nextNextInfo = router.getNextRouteDirectionInfoAfter(nextInfo, new NextDirectionInfo(), false);
+		NextDirectionInfo nextNextInfo = router.getNextRouteDirectionInfoAfter(nextInfo, new NextDirectionInfo(), true);
 		if (statusNotPassed(STATUS_TURN) && isDistanceLess(speed, dist, TURN_DISTANCE, TURN_DEFAULT_SPEED)) {
 			if (next.distance < TURN_IN_DISTANCE_END && nextNextInfo != null) {
 				playMakeTurn(next, nextNextInfo.directionInfo);
@@ -338,6 +346,15 @@ public class VoiceRouter {
 		CommandBuilder play = getNewCommandPlayerToPlay();
 		if(play != null){
 			play.goAhead(router.getLeftDistance()).andArriveAtDestination().play();
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean playGoAheadToIntermediate() {
+		CommandBuilder play = getNewCommandPlayerToPlay();
+		if(play != null){
+			play.goAhead(router.getLeftDistanceNextIntermediate()).andArriveAtIntermediatePoint().play();
 			return true;
 		}
 		return false;
@@ -503,6 +520,13 @@ public class VoiceRouter {
 		CommandBuilder play = getNewCommandPlayerToPlay();
 		if(play != null){
 			play.arrivedAtDestination().play();
+		}
+	}
+	
+	public void arrivedIntermediatePoint() {
+		CommandBuilder play = getNewCommandPlayerToPlay();
+		if(play != null){
+			play.arrivedAtIntermediatePoint().play();
 		}
 	}
 

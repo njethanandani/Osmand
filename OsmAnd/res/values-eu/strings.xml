@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources><string name="offline_navigation_not_available">Offline nabigazioa zerbitzuz kanpo dago orain.</string>
   <string name="left_side_navigation">Trafikoa ezkerraldetik</string>
   <string name="left_side_navigation_descr">Trafikoa ezkerraldetik duten herrialdeentzako hautatu</string>
@@ -164,7 +164,7 @@
   <string name="settings_preset_descr">Select a user profile. Each profile contains the set of specific settings.</string>
   <string name="monitor_preferences">Tracking</string>
   <string name="monitor_preferences_descr">Specify tracking settings</string>
-  <string name="routing_settings">- Navigation</string>
+  <string name="routing_settings">Navigation</string>
   <string name="routing_settings_descr">Specify navigation options</string>
   <string name="global_settings">Global Settings</string>
   <string name="index_settings">Offline Data (Download)</string>

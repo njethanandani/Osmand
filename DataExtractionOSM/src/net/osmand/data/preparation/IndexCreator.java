@@ -49,8 +49,8 @@ public class IndexCreator {
 	// ONLY derby.jar needed for derby dialect 
 	// (NOSQL is the fastest but is supported only on linux 32)
 	// Sqlite better to use only for 32-bit machines 
-	public static DBDialect dialect = DBDialect.SQLITE;
-	public static DBDialect mapDBDialect = DBDialect.SQLITE;
+	private DBDialect osmDBdialect = DBDialect.SQLITE;
+	private DBDialect mapIndexDBDialect = DBDialect.SQLITE;
 	public static boolean REMOVE_POI_DB = true; 
 
 	public static final int BATCH_SIZE = 5000;
@@ -163,6 +163,15 @@ public class IndexCreator {
 	public String getTempMapDBFileName() {
 		return getMapFileName() + ".tmp"; //$NON-NLS-1$
 	}
+	
+	public void setDialects(DBDialect osmDBdialect, DBDialect mapIndexDBDialect) {
+		if(osmDBdialect != null) {
+			this.osmDBdialect = osmDBdialect;
+		}
+		if(mapIndexDBDialect != null) {
+			this.mapIndexDBDialect = mapIndexDBDialect;
+		}
+	}
 
 	public Long getLastModifiedDate() {
 		return lastModifiedDate;
@@ -236,7 +245,7 @@ public class IndexCreator {
 		long st = System.currentTimeMillis();
 		if (readFile.getName().endsWith(".bz2")) { //$NON-NLS-1$
 			if (stream.read() != 'B' || stream.read() != 'Z') {
-				throw new RuntimeException("The source stream must start with the characters BZ if it is to be read as a BZip2 stream."); //$NON-NLS-1$
+//				throw new RuntimeException("The source stream must start with the characters BZ if it is to be read as a BZip2 stream."); //$NON-NLS-1$
 			} else {
 				stream = new CBZip2InputStream(stream);
 			}
@@ -268,7 +277,7 @@ public class IndexCreator {
 			progress.setGeneralProgress("[15 / 100]"); //$NON-NLS-1$
 			progress.startTask(Messages.getString("IndexCreator.LOADING_FILE") + readFile.getAbsolutePath(), -1); //$NON-NLS-1$
 			// 1 init database to store temporary data
-			dbCreator.initDatabase(dialect, dbConn);
+			dbCreator.initDatabase(osmDBdialect, dbConn);
 			storage.getFilters().add(dbCreator);
 			if (pbfFile) {
 				storage.parseOSMPbf(stream, progress, false);
@@ -276,7 +285,7 @@ public class IndexCreator {
 				storage.parseOSM(stream, progress, streamFile, false);
 			}
 			dbCreator.finishLoading();
-			dialect.commitDatabase(dbConn);
+			osmDBdialect.commitDatabase(dbConn);
 
 			if (log.isInfoEnabled()) {
 				log.info("File parsed : " + (System.currentTimeMillis() - st)); //$NON-NLS-1$
@@ -293,15 +302,15 @@ public class IndexCreator {
 	private boolean createPlainOsmDb(IProgress progress, File readFile, IOsmStorageFilter addFilter, boolean deletePrevious) throws SQLException, FileNotFoundException, IOException, SAXException{
 //		dbFile = new File(workingDir, TEMP_NODES_DB);
 		// initialize db file
-		boolean loadFromExistingFile = dbFile != null && dialect.databaseFileExists(dbFile) && !deletePrevious;
+		boolean loadFromExistingFile = dbFile != null && osmDBdialect.databaseFileExists(dbFile) && !deletePrevious;
 		if (dbFile == null || deletePrevious) {
 			dbFile = new File(workingDir, TEMP_NODES_DB);
 			// to save space
-			if (dialect.databaseFileExists(dbFile)) {
-				dialect.removeDatabase(dbFile);
+			if (osmDBdialect.databaseFileExists(dbFile)) {
+				osmDBdialect.removeDatabase(dbFile);
 			}
 		}
-		dbConn = getDatabaseConnection(dbFile.getAbsolutePath(), dialect);
+		dbConn = getDatabaseConnection(dbFile.getAbsolutePath(), osmDBdialect);
 		int allRelations = 100000;
 		int allWays = 1000000;
 		int allNodes = 10000000;
@@ -313,7 +322,7 @@ public class IndexCreator {
 				allRelations = dbCreator.getAllRelations();
 			}
 		} else {
-			if (DBDialect.NOSQL != dialect) {
+			if (DBDialect.NOSQL != osmDBdialect) {
 				Connection dbc = (Connection) dbConn;
 				final Statement stmt = dbc.createStatement();
 				accessor.computeRealCounts(stmt);
@@ -323,7 +332,7 @@ public class IndexCreator {
 				stmt.close();
 			}
 		}
-		accessor.initDatabase(dbConn, dialect, allNodes, allWays, allRelations);
+		accessor.initDatabase(dbConn, osmDBdialect, allNodes, allWays, allRelations);
 		return loadFromExistingFile;
 	}
 	
@@ -333,25 +342,25 @@ public class IndexCreator {
 		// to save space
 		mapFile.getParentFile().mkdirs();
 		File tempDBMapFile = new File(workingDir, getTempMapDBFileName());
-		mapDBDialect.removeDatabase(tempDBMapFile);
-		mapConnection = (Connection) getDatabaseConnection(tempDBMapFile.getAbsolutePath(), mapDBDialect);
+		mapIndexDBDialect.removeDatabase(tempDBMapFile);
+		mapConnection = (Connection) getDatabaseConnection(tempDBMapFile.getAbsolutePath(), mapIndexDBDialect);
 		mapConnection.setAutoCommit(false);
 
 		// 2.2 create rtree map
 		if (indexMap) {
-			indexMapCreator.createDatabaseStructure(mapConnection, mapDBDialect, getRTreeMapIndexNonPackFileName());
+			indexMapCreator.createDatabaseStructure(mapConnection, mapIndexDBDialect, getRTreeMapIndexNonPackFileName());
 		}
 		if (indexRouting) {
-			indexRouteCreator.createDatabaseStructure(mapConnection, mapDBDialect, getRTreeRouteIndexNonPackFileName());
+			indexRouteCreator.createDatabaseStructure(mapConnection, mapIndexDBDialect, getRTreeRouteIndexNonPackFileName());
 		}
 		if (indexAddress) {
-			indexAddressCreator.createDatabaseStructure(mapConnection, mapDBDialect);
+			indexAddressCreator.createDatabaseStructure(mapConnection, mapIndexDBDialect);
 		}
 		if (indexPOI) {
 			indexPoiCreator.createDatabaseStructure(new File(workingDir, getPoiFileName()));
 		}
 		if (indexTransport) {
-			indexTransportCreator.createDatabaseStructure(mapConnection, mapDBDialect, getRTreeTransportStopsFileName());
+			indexTransportCreator.createDatabaseStructure(mapConnection, mapIndexDBDialect, getRTreeTransportStopsFileName());
 		}
 	}
 	
@@ -481,7 +490,7 @@ public class IndexCreator {
 			if (recreateOnlyBinaryFile) {
 				mapFile = new File(workingDir, getMapFileName());
 				File tempDBMapFile = new File(workingDir, getTempMapDBFileName());
-				mapConnection = (Connection) getDatabaseConnection(tempDBMapFile.getAbsolutePath(), mapDBDialect);
+				mapConnection = (Connection) getDatabaseConnection(tempDBMapFile.getAbsolutePath(), mapIndexDBDialect);
 				mapConnection.setAutoCommit(false);
 				try {
 					if (indexMap) {
@@ -597,10 +606,17 @@ public class IndexCreator {
 				});
 
 				// 3.4 combine all low level ways and simplify them
-				if (indexMap) {
+				if (indexMap || indexRouting) {
 					progress.setGeneralProgress("[90 / 100]");
-					progress.startTask(Messages.getString("IndexCreator.INDEX_LO_LEVEL_WAYS"), indexMapCreator.getLowLevelWays());
-					indexMapCreator.processingLowLevelWays(progress);
+					if(indexMap) {
+						progress.startTask(Messages.getString("IndexCreator.INDEX_LO_LEVEL_WAYS"), indexMapCreator.getLowLevelWays());
+						indexMapCreator.processingLowLevelWays(progress);
+					}
+					if(indexRouting) {
+						progress.startTask(Messages.getString("IndexCreator.INDEX_LO_LEVEL_WAYS"), -1);
+						indexRouteCreator.processingLowLevelWays(progress);
+					}
+					
 				}
 
 				// 3.5 update all postal codes from relations
@@ -692,7 +708,7 @@ public class IndexCreator {
 						deleteDatabaseIndexes);
 				indexMapCreator.commitAndCloseFiles(getRTreeMapIndexNonPackFileName(), getRTreeMapIndexPackFileName(),
 						deleteDatabaseIndexes);
-				indexRouteCreator.commitAndCloseFiles(getRTreeRouteIndexPackFileName(), getRTreeRouteIndexPackFileName(),
+				indexRouteCreator.commitAndCloseFiles(getRTreeRouteIndexNonPackFileName(), getRTreeRouteIndexPackFileName(),
 						deleteDatabaseIndexes);
 
 				if (mapConnection != null) {
@@ -700,27 +716,27 @@ public class IndexCreator {
 					mapConnection.close();
 					mapConnection = null;
 					File tempDBFile = new File(workingDir, getTempMapDBFileName());
-					if (mapDBDialect.databaseFileExists(tempDBFile) && deleteDatabaseIndexes) {
+					if (mapIndexDBDialect.databaseFileExists(tempDBFile) && deleteDatabaseIndexes) {
 						// do not delete it for now
-						mapDBDialect.removeDatabase(tempDBFile);
+						mapIndexDBDialect.removeDatabase(tempDBFile);
 					}
 				}
 
 				// do not delete first db connection
 				if (dbConn != null) {
-					dialect.commitDatabase(dbConn);
-					dialect.closeDatabase(dbConn);
+					osmDBdialect.commitDatabase(dbConn);
+					osmDBdialect.closeDatabase(dbConn);
 					dbConn = null;
 				}
 				if (deleteOsmDB) {
-					if (DBDialect.DERBY == dialect) {
+					if (DBDialect.DERBY == osmDBdialect) {
 						try {
 							DriverManager.getConnection("jdbc:derby:;shutdown=true"); //$NON-NLS-1$
 						} catch (SQLException e) {
 							// ignore exception
 						}
 					}
-					dialect.removeDatabase(dbFile);
+					osmDBdialect.removeDatabase(dbFile);
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -747,16 +763,20 @@ public class IndexCreator {
 		creator.setZoomWaySmothness(2);
 		MapRenderingTypes rt = MapRenderingTypes.getDefault();
 		MapZooms zooms = MapZooms.getDefault(); // MapZooms.parseZooms("15-");
-//		creator.setNodesDBFile(new File("/home/victor/projects/OsmAnd/data/osm-gen/nodes.tmp.odb"));
-		creator.generateIndexes(new File("/home/victor/projects/OsmAnd/temp/map.osm"),
-//		creator.generateIndexes(new File("/home/victor/projects/OsmAnd/data/osm-maps/luxembourg.osm.pbf"),
-//		creator.generateIndexes(new File("/home/victor/projects/OsmAnd/data/osm-maps/RU-SPE.osm.bz2"),
+
+		String file = "/home/victor/projects/OsmAnd/temp/map.osm";
+//		String file = "/home/victor/projects/OsmAnd/temp/belgium.osm.pbf";
+		int st = file.lastIndexOf('/');
+		int e = file.indexOf('.', st);
+		creator.setNodesDBFile(new File("/home/victor/projects/OsmAnd/data/osm-gen/"+file.substring(st, e) + ".tmp.odb"));
+		creator.generateIndexes(new File(file),
 				new ConsoleProgressImplementation(1), null, zooms, rt, log);
+		
 		
 		
 		// BASEMAP generation
 //		zooms = MapZooms.parseZooms("1-2;3;4-5;6-7;8-9;10-");
-//		creator.setMapFileName("basemap_2.obf");
+//		creator.setMapFileName("World_basemap_2.obf");
 //		File basemapParent = new File("/home/victor/projects/OsmAnd/data/basemap/ready/");
 //		creator.generateBasemapIndex(new ConsoleProgressImplementation(1), null, zooms, rt, log, "basemap", 
 //				new File(basemapParent, "10m_coastline_out.osm"),

@@ -42,6 +42,8 @@ public class MapControlsLayer extends OsmandMapLayer {
 	private static final int SHOW_ZOOM_LEVEL_MSG_ID = 3;
 	private static final int SHOW_ZOOM_LEVEL_DELAY = 2000;
 	private static final double MENU_OPTION_MARGIN_PERCENT = 0.125;
+	private static final float ZOOM_DELTA = 1;
+//	private static final float ZOOM_DELTA = OsmandMapTileView.ZOOM_DELTA_1; 
 	
 	private OsmandMapTileView view;
 	private DisplayMetrics dm;
@@ -489,11 +491,9 @@ public class MapControlsLayer extends OsmandMapLayer {
 			@Override
 			public void onClick(View v) {
 				if (view.isZooming()) {
-					activity.changeZoom(view.getZoom() + 2 );
-//					activity.changeZoom(view.getFloatZoom() + 2 * OsmandMapTileView.ZOOM_DELTA_1 );
+					activity.changeZoom(Math.round(view.getFloatZoom() + 2 * ZOOM_DELTA));
 				} else {
-					activity.changeZoom(view.getZoom() + 1 );
-//					activity.changeZoom(view.getFloatZoom() + 1 * OsmandMapTileView.ZOOM_DELTA_1 );
+					activity.changeZoom(Math.round(view.getFloatZoom() + 1 * ZOOM_DELTA));
 				}
 
 			}
@@ -502,8 +502,7 @@ public class MapControlsLayer extends OsmandMapLayer {
 		zoomOutButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				activity.changeZoom(view.getZoom() - 1 );
-//				activity.changeZoom(view.getFloatZoom() - 1 * OsmandMapTileView.ZOOM_DELTA_1 );
+				activity.changeZoom(Math.round(view.getFloatZoom() - 1 * ZOOM_DELTA));
 			}
 		});
 	}

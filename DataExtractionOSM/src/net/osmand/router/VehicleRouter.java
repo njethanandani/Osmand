@@ -1,5 +1,6 @@
 package net.osmand.router;
 
+import net.osmand.binary.BinaryMapRouteReaderAdapter.RouteRegion;
 import net.osmand.binary.RouteDataObject;
 import net.osmand.router.BinaryRoutePlanner.RouteSegment;
 
@@ -13,6 +14,8 @@ public abstract class VehicleRouter {
 	 */
 	public abstract boolean acceptLine(RouteDataObject way);
 	
+	public abstract boolean acceptLine(int[] types, RouteRegion region);
+	
 	public abstract boolean restrictionsAware();
 
 	
@@ -24,21 +27,21 @@ public abstract class VehicleRouter {
 		return road.getHighway();
 	}
 	
+	public abstract boolean containsAttribute(String attribute);
 	
-	/**
-	 * Used for algorithm to multiply h(x) part A* based on current road
-	 */
-	public abstract double getFutureRoadPriority(RouteDataObject road);
+	public abstract String getAttribute(String attribute);
+	
+	
 
 	/**
 	 * return delay in seconds
 	 */
-	public double defineObstacle(RouteDataObject road, int point) {
+	public float defineObstacle(RouteDataObject road, int point) {
 		// no obstacles
 		return 0;
 	}
 	
-	public double defineRoutingObstacle(RouteDataObject road, int point) {
+	public float defineRoutingObstacle(RouteDataObject road, int point) {
 		// no obstacles
 		return 0;
 	}
@@ -46,26 +49,26 @@ public abstract class VehicleRouter {
 	/**
 	 * return speed in m/s for vehicle for specified road
 	 */
-	public abstract double defineSpeed(RouteDataObject road);
+	public abstract float defineSpeed(RouteDataObject road);
 	
 	/**
 	 * define priority to multiply the speed for g(x) A* 
 	 */
-	public abstract double defineSpeedPriority(RouteDataObject road);
+	public abstract float defineSpeedPriority(RouteDataObject road);
 
 	/**
 	 * Used for A* routing to calculate g(x)
 	 * 
 	 * @return minimal speed at road in m/s
 	 */
-	public abstract double getMinDefaultSpeed();
+	public abstract float getMinDefaultSpeed();
 
 	/**
 	 * Used for A* routing to predict h(x) : it should be great any g(x)
 	 * 
 	 * @return maximum speed to calculate shortest distance
 	 */
-	public abstract double getMaxDefaultSpeed();
+	public abstract float getMaxDefaultSpeed();
 	
 	public abstract VehicleRouter specialization(String tag);
 

@@ -8,12 +8,13 @@ import net.osmand.ResultMatcher;
 import net.osmand.data.Building;
 import net.osmand.data.City;
 import net.osmand.data.Street;
+import net.osmand.osm.LatLon;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.R;
 import net.osmand.plus.RegionAddressRepository;
 import android.os.AsyncTask;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.Toast;
 
 public class SearchBuildingByNameActivity extends SearchByNameAbstractActivity<Building> {
 	private RegionAddressRepository region;
@@ -40,6 +41,10 @@ public class SearchBuildingByNameActivity extends SearchByNameAbstractActivity<B
 				setLabelText(R.string.incremental_search_building);
 				progress.setVisibility(View.INVISIBLE);
 				finishInitializing(result);
+				if (result.isEmpty()) {
+					Toast.makeText(SearchBuildingByNameActivity.this, 
+							R.string.no_buildings_found, Toast.LENGTH_LONG).show();
+				}
 			}
 			
 			@Override
@@ -75,15 +80,59 @@ public class SearchBuildingByNameActivity extends SearchByNameAbstractActivity<B
 		};
 	}
 	
+	
 	@Override
 	public String getText(Building obj) {
+		if(obj.getInterpolationInterval() > 0 || obj.getInterpolationType() != null){
+			String hno = getCurrentFilter();
+			if(hno.length() > 0 && obj.belongsToInterpolation(hno)) {
+				return hno + " [" + obj.getName(region.useEnglishNames())+"]";
+			}
+		}
 		return obj.getName(region.useEnglishNames());
 	}
 	
 	@Override
+	public String getShortText(Building obj) {
+		if(obj.getInterpolationInterval() > 0 || obj.getInterpolationType() != null){
+			return "";
+		}
+		return super.getShortText(obj);
+	}
+	
+	
+	@Override
 	public void itemSelected(Building obj) {
-		settings.setLastSearchedBuilding(obj.getName(region.useEnglishNames()), obj.getLocation());
+		String text = getText(obj);
+		LatLon loc = obj.getLocation();
+		if(obj.getInterpolationInterval() > 0 || obj.getInterpolationType() != null){
+			String hno = getCurrentFilter();
+			float interpolation = obj.interpolation(hno);
+			if (interpolation >= 0) {
+				text = hno;
+				if (interpolation > 0 && obj.getLatLon2() != null) {
+					double lat1 = loc.getLatitude();
+					double lat2 = obj.getLatLon2().getLatitude();
+					double lon1 = loc.getLongitude();
+					double lon2 = obj.getLatLon2().getLongitude();
+					loc = new LatLon(interpolation * (lat2 - lat1) + lat1, interpolation * (lon2 - lon1) + lon1);
+				}
+			}
+		}
+		settings.setLastSearchedBuilding(text, loc);
 		finish();
+		
+	}
+	
+	@Override
+	public boolean filterObject(Building obj, String filter){
+		if(super.filterObject(obj, filter)){
+			return true;
+		}
+		if(obj.belongsToInterpolation(filter)){
+			return true;
+		}
+		return false;
 		
 	}
 

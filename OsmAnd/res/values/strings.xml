@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!--
     	 Disclaimer : 
@@ -6,22 +6,85 @@
          1. There is no duplicate strings by name
          2. Every apostrophe (quote) is preceded by a backslash (see others).
          If you are making/correcting english translations make sure :
-         1. All your modified/created strings are in the top of the file (to make easier find what's translated).
+         1. All your modified/created strings are in the top of the file (to make easier find what\'s translated).
     PLEASE: Have a look at http://code.google.com/p/osmand/wiki/UIConsistency, it may really improve your and our work  :-)  Thx - Hardy
     -->
-
+    <string name="no_buildings_found">No buildings found.</string>
+    <string name="incremental_search_city">Search city incrementally.</string>
+    <string name="search_villages_and_postcodes">Search villages/postcode </string>
+	<string name="rendering_attr_showRoadMaps_description">Select when to display roads-only maps:</string>
+	<string name="rendering_attr_showRoadMaps_name">Roads-only maps</string>
+    <string name="download_roads_only_item">Roads </string>
+    <string name="download_regular_maps">Regular maps</string>
+    <string name="download_roads_only_maps">Roads-only maps</string>
+    <string name="safe_mode_description">Run the application in safe mode (using slower Android instead of native code).</string>
+    <string name="safe_mode">Safe mode</string>
+    <string name="native_library_not_running">The application is running in safe mode (disable it in the Settings).</string>
+    <string name="background_service_is_enabled_question">Background service is still running. Do you want to cancel it?</string>
+    <string name="tip_recent_changes_1_0_0_t">Changes in 1.0.0 :
+	\n\t* Improved routing: faster, more precise, up to 250 km
+	\n\t* Introduce roads-only maps
+	\n\t* Map does not lose position lock after interruptions
+	\n\t* Enable background service during navigation
+    </string>
+    <string name="tip_recent_changes_0_8_4_t">Changes in 0.8.4 :
+	\n\t* Some bug fixes
+	\n\t* Map does not lose position lock after interruptions
+	\n\t* Enable background service during navigation
+    </string>
+    <string name="close_changeset">Close changeset</string>
+	<string name="zxing_barcode_scanner_not_found">ZXing Barcode Scanner application not installed. Search in Market?</string>
+	<string name="rendering_attr_roadColors_description">Select a road color scheme:</string>
+	<string name="rendering_attr_roadColors_name">Road color scheme</string>
+    <string name="map_widget_show_destination_arrow">Show destination direction</string>
+    <string name="enable_plugin_monitoring_services">Enable tracking plugin to use position logging services (logging, live tracking)</string>
+    <string name="non_optimal_route_calculation">Calculate possibly non-optimal route over long distances</string>
+	<string name="gps_not_available">Please enable GPS in the settings</string>
+    <string name="tip_recent_changes_0_8_3_t">Changes in 0.8.3 :
+	\n\t* Waypoints
+	\n\t* Improved route guidance
+	\n\t* Added a setting which allows to avoid motorways while building a route
+	\n\t* Added one more type of roads for bicycles to the map (Cycleway=track)
+	\n\t* Bug fixes
+	</string>
+	<string name="map_widget_monitoring_services">Logging services</string>
+	<string name="no_route">No route</string>
+	<string name="delete_target_point">Remove waypoint</string>
+	<string name="target_point">Waypoint %1$s</string>
+    <string name="intermediate_point">Waypoint %1$s</string>
+    <string name="navigate_to">Set as destination</string>
+    <string name="context_menu_item_last_intermediate_point">Add as last waypoint</string>
+    <string name="context_menu_item_first_intermediate_point">Add as first waypoint</string>
+    <string name="add_as_last_destination_point">Add as last waypoint</string>
+    <string name="add_as_first_destination_point">Add as first waypoint</string>
+    <string name="replace_destination_point">Replace destination point</string>
+    <string name="new_destination_point_dialog">You already have destination point set.</string>
+    <string name="target_points">Waypoints</string>
+    <string name="intermediate_point_too_far">Waypoint %1$s too far from nearest road.</string>
+    <string name="arrived_at_intermediate_point">You have arrived at your waypoint</string>
+    <string name="context_menu_item_intermediate_point">Add as waypoint</string>
+    <string name="map_widget_intermediate_distance">Waypoint</string>
+    <string name="ending_point_too_far">Ending point too far from nearest road.</string>
+    <string name="btn_add_tag">Add Tag</string>
+    <string name="btn_advanced_mode">Advanced Mode&#8230;</string>
+    <string name="poi_filter_parking">Parking</string>
+    <string name="poi_filter_emergency">Emergency</string>
+    <string name="poi_filter_public_transport">Public Transport</string>
+    <string name="poi_filter_entertainment">Entertainment</string>
+    <string name="poi_filter_accomodation">Accomodation</string>
+    <string name="poi_filter_restaurants">Restaurants</string>
+    <string name="poi_filter_sightseeing">Sightseeing</string>
+    <string name="poi_filter_car_aid">Car aid</string>
+	<string name="poi_filter_food_shop">Food shop</string>
+	<string name="poi_filter_for_tourists">For tourists</string>
+	<string name="poi_filter_fuel">Fuel</string>
+	<string name="show_warnings_title">Show alarms&#8230;</string>
+	<string name="show_warnings_descr">Configure traffic warnings (speed limits, forced stops, speed bumps), speed camera warnings, and lane information</string>
 	<string name="use_compass_navigation_descr">Use the compass when no heading is detected otherwise</string>
 	<string name="use_compass_navigation">Use compass</string>
 	<string name="avoid_motorway">Avoid motorways</string>
 	<string name="auto_zoom_map_descr">Auto zoom map according to your speed (while map is synchronized with current position)</string>
 	<string name="auto_zoom_map">Auto zoom map</string>
-	<string name="tip_recent_changes_0_8_3_t">Changes in 0.8.3 :
-		\n\t* Improved route guidance
-		\n\t* Avoid motorways option
-		\n\t* Cycleway=track display
-		\n\t* better UI finish (icons)
-		\n\t* Some bug fixes
-	</string>
 	<string name="snap_to_road_descr">Snap position to roads during navigation</string>
 	<string name="snap_to_road">Snap to road</string>
 	<string name="tip_recent_changes_0_8_2_t">Changes in 0.8.2 :
@@ -104,8 +167,6 @@
 	<string name="avoid_ferries">Avoid ferries</string>
 	<string name="avoid_in_routing_title">Avoid&#8230;</string>
 	<string name="avoid_in_routing_descr">Avoid toll roads, unpaved, ferries</string>
-	<string name="show_warnings_title">Show alarms&#8230;</string>
-	<string name="show_warnings_descr">Show speed limits, speed cameras, and traffic bumps</string>
 	<string name="map_widget_fluorescent">Fluorescent routes</string>
 	<string name="map_widget_show_ruler">Ruler</string>
 	<string name="map_widget_appearance">Miscellaneous:</string>
@@ -129,9 +190,9 @@
 	<string name="map_widget_right_stack">Right panel:</string>
 	<string name="map_widget_left_stack">Left panel:</string>
 	<string name="map_widget_parking">Parking</string>
-	<string name="map_widget_monitoring">Tracking</string>
+	<string name="map_widget_monitoring">GPX recording</string>
 	<string name="map_widget_speed">Speed</string>
-	<string name="map_widget_distance">Target</string>
+	<string name="map_widget_distance">Destination</string>
 	<string name="map_widget_altitude">Altitude</string>
 	<string name="map_widget_time">Time to go</string>
 	<string name="map_widget_next_turn">Next turn</string>
@@ -143,7 +204,7 @@
 	<string name="bg_service_screen_lock_toast">The screen is locked</string>
 	<string name="bg_service_interval">Set wake-up interval:</string>
 	<string name="show_cameras">Show speed cameras</string>
-	<string name="show_speed_limits">Show speed limits</string>
+	<string name="show_speed_limits">Show traffic warnings</string>
 	<string name="avoid_toll_roads">Avoid toll roads</string>
 	<string name="continue_follow_previous_route_auto">Previous navigation was unfinished. Continue following it? (%1$s seconds)</string>
 	<string name="route_updated_loc_found">Route will be recalculated when location will be found</string>
@@ -201,8 +262,9 @@
 	<string name="rendering_attr_noPolygons_description">Make all areal land features on map transparent</string>
 	<string name="rendering_attr_noPolygons_name">No polygons</string>
 	<string name="rendering_attr_appMode_name">Rendering mode</string>
-	<string name="rendering_attr_appMode_description">Map optimization for respective User Profile</string>
-	<string name="rendering_attr_contourLines_description">Select minimum zoom level to display in map if available. Separate SRTM-file may be needed.</string>
+	<string name="rendering_attr_appMode_description">Optimize map for</string>
+	<!-- string name="rendering_attr_contourLines_description">Select minimum zoom level to display in map if available. Separate SRTM-file may be needed.</string -->
+	<string name="rendering_attr_contourLines_description">Display from zoom level (needs SRTM file):</string>
 	<string name="rendering_attr_contourLines_name">Show contour lines</string>
 	<string name="rendering_attr_hmRendered_description">Increase amount of map detail shown</string>
 	<string name="rendering_attr_hmRendered_name">Show more map detail</string>
@@ -223,17 +285,17 @@
 	<string name="context_menu_item_directions">Directions to here</string>
 	<string name="modify_transparency">Modify transparency (0 - transparent, 255 - opaque)</string>
 	<string name="confirm_interrupt_download">Do you want to interrupt file downloading?</string>
-	<string name="first_time_msg">To use the major features of this application, you need some regional offline data, which you can download (use \'Settings\' ->  \'Offline Data\'). Afterwards, you will be able to search by address, look up POIs and find public transportation.</string>    
+	<string name="first_time_msg">Thank you for using OsmAnd. For many features of this application you need some regional offline data which you can download via \'Settings\' ->  \'Offline data\'. Afterwards you will be able to view maps, locate addresses, look up POIs, and find public transportation.</string>    
 	<string name="basemap_was_selected_to_download">Basemap is required for proper application functioning and was selected to download.</string>
 	<string name="select_index_file_to_download">Nothing was found. If you can\'t find your region, you can make it yourself (see http://osmand.net).</string>
-	<string name="local_indexes_cat_tile">Online maps (tiles)</string>
+	<string name="local_indexes_cat_tile">Online and tile maps</string>
 	<string name="local_indexes_cat_map">Offline maps (vector)</string>
 	<string name="gpx_index_settings_descr"> (includes GPX analyzer)</string>
 	<string name="index_settings_descr">Download, view details, and manage offline maps</string>
 	<string name="map_online_plugin_is_not_installed">Enable online maps plugin to select different map sources</string>
-	<string name="map_online_data">Online maps (tiles)</string>
+	<string name="map_online_data">Online and tile maps</string>
 	<string name="map_online_data_descr">Use online maps (download and cache tiles on SD card)</string>
-	<string name="online_map_settings">Online Maps</string>
+	<string name="online_map_settings">Online maps</string>
 	<string name="online_map_settings_descr">Configure online or cached tile map sources</string>
 	<string name="map_settings">Map Settings</string>
 	<string name="map_settings_descr">Configure the map display</string>
@@ -363,7 +425,7 @@
 	<string name="local_openstreetmap_show">Show on map</string>
 	<string name="local_openstreetmap_upload">Upload modification to OSM</string>
 	<string name="local_openstreetmap_delete">Delete modification</string>
-	<string name="local_openstreetmap_descr_title">Asynchronous OSM Editing:</string>
+	<string name="local_openstreetmap_descr_title">Asynchronous OSM editing:</string>
 	<string name="local_openstreetmap_settings">Locally saved OSM POIs/Bugs</string>
 	<string name="local_openstreetmap_settings_descr">Show and manage OSM POIs/Bugs noted in local database</string>
 	<string name="live_monitoring_descr">Send tracking to a specified web service</string>
@@ -406,15 +468,15 @@
 	<string name="routing_settings">Navigation</string>
 	<string name="routing_settings_descr">Specify navigation options</string>
 	<string name="global_settings">Global Settings</string>
-	<string name="index_settings">Offline Data (Download)</string>
-	<string name="general_settings">General Settings</string>
+	<string name="index_settings">Offline data (Download)</string>
+	<string name="general_settings">General settings</string>
 	<string name="general_settings_descr">Configure global settings</string>
 	<string name="global_app_settings">Global app settings</string>
 	<string name="user_name">Your OSM user name</string>
 	<string name="user_name_descr">Needed for openstreetmap.org submissions</string>
 	<string name="user_password">Your OSM password</string>
 	<string name="user_password_descr">Needed for openstreetmap.org submissions</string>
-	<string name="osmand_service">Sleep Mode Functionality</string>
+	<string name="osmand_service">Sleep mode functionality</string>
 	<string name="osmand_service_descr">Use to run OsmAnd while screen is off</string>
 	<string name="diagnostics_settings">Driving Diagnostics</string>
 	<string name="diagnostics_settings_descr">Settings for diagnosing your driving style</string>
@@ -425,11 +487,11 @@
 		\n\t\'To direction of movement\' - Map will continuously be aligned with your heading
 		\n\t\'To compass\' - Map will continuously be aligned with device compass reading
 	</string>
-	<string name="binary_map_download_success">Download successful.\n\t\n\tTo use activate \'Menu\' -> \'Define View\' -> \'Map source...\' -> \'Offline vector maps\'.</string>
+	<string name="binary_map_download_success">Download successful.\n\t\n\tTo use activate \'Menu\' -> \'Define View\' -> \'Map source&#8230;\' -> \'Offline vector maps\'.</string>
 	<string name="tip_day_night_mode">Day/Night Mode</string>
 	<string name="tip_day_night_mode_t_v2">\tThe map appearance can for some vector maps be changed between day (brighter) and night (darker).
 		\n\tNight colors are safer for night driving.
-		\n\tYou can set a policy for day/night switching in \'Menu\' -> \'Configure screen...\' ->\'Day/night map\'.
+		\n\tYou can set a policy for day/night switching in \'Menu\' -> \'Configure screen&#8230;\' ->\'Day/night map\'.
 		\n\tChoices are:
 		\n\t\'Sunrise/Sunset\' - automatic mode, controlled by position of the sun (default)
 		\n\t\'Day\' - always use day mode
@@ -438,7 +500,7 @@
 	</string>	
 	<string name="tip_osm_improve">Improving OSM Data</string>
 	<string name="tip_osm_improve_t">\tOsmAnd uses maps based on Openstreetmap.org (OSM) data and -besides map viewing and navigation- can be used to improve OSM data quality. You can easily create and upload new POI or OSM bug reports with just a few clicks!
-		\n\tFor this you need to first provide your OSM login information in \'Settings\' -> \'General settings\' -> \'OSM Editing\'.
+		\n\tFor this you need to first provide your OSM login information in \'Settings\' -> \'General settings\' -> \'OSM editing\'.
 		\n\tTo add a new POI use option \'Create POI\' in the map context menu. Proceed with entering the information about the new POI in \'Create POI\' dialog and finally commit it.
 		\n\tErrors in maps can immediately be reported via OSM bug, and OSM community can then faster fix this problem.
 		\n\tTo add a OSM bug use option \'Open OSM bug\' in the map context menu. Then enter the detailed description of the problem and finally post it using the \'Add\' button.
@@ -550,7 +612,7 @@
 	<string name="local_index_gpx_info_show">\n\nPress and hold for options</string>
 	<string name="local_index_gpx_info_speed">\nAverage speed : %1$s \nMaximum speed : %2$s</string>
 	<string name="local_index_gpx_info_elevation">\nAverage altitude : %1$.0f m\nMinimum altitude : %2$.0f m\nMaximum altitude : %3$.0f m\nAscents : %4$.0f m\nDescents : %5$.0f m</string>
-	<string name="local_index_gpx_info">Subtracks : %1$d\nTotal points : %2$d\nWay points : %3$d\nTotal distance : %4$s\nStart time : %5$tF,  %5$tR\nEnd time : %6$tF,  %6$tR</string>
+	<string name="local_index_gpx_info">Subtracks : %1$d\nTotal points : %2$d\nWaypoints : %3$d\nTotal distance : %4$s\nStart time : %5$tF,  %5$tR\nEnd time : %6$tF,  %6$tR</string>
 	<string name="local_index_installed">Edition</string>
 	<string name="local_index_items_backuped">%1$d of %2$d item(s) successfully deactivated.</string>
 	<string name="local_index_items_deleted">%1$d of %2$d item(s) successfully deleted.</string>
@@ -643,9 +705,10 @@
 	<string name="system_locale">System</string>
 	<string name="preferred_locale_descr">Select display language</string>
 	<string name="preferred_locale">Display language</string>
+	<string name="incomplete_locale">incomplete</string>
 	<string name="tip_map_switch">Map Source</string>
 	<string name="tip_map_switch_t_v2">\tThe map source and layers displayed are changed via \'Menu\' -> \'Define view\' in map view.
-		\n\tUnder \'Map source&#8230;\' you can choose using the pre-loaded offline vector maps, predefined (online) tile sources (activate the \'Online maps\' plugin for this), or maps manually created using e.g. OsmAndMapCreator on a PC.
+		\n\tUnder \'Map source&#8230;\' you can choose using the pre-loaded offline vector maps, predefined (online) tile sources (activate the \'Online and tile maps\' plugin for this), or maps manually created using e.g. OsmAndMapCreator on a PC.
 		\n\tOsmAnd also supports custom sources.
 	</string>
 	<string name="tip_app_mode">User Profile</string>
@@ -665,7 +728,7 @@
 	</string>
 	<string name="tip_initial">Tips and Tricks</string>
 	<string name="tip_initial_t">\tOsmAnd is a navigation application with many features. 
-		\n\tAs an basic introduction, some usage tips and tricks are linked on the main screen.
+		\n\tAs a basic introduction, some usage tips and tricks are linked on the main screen (see \'?\' icon).
 	</string>
 	<string name="next_button">Next</string>
 	<string name="previous_button">Previous</string>
@@ -716,12 +779,8 @@
 	<string name="km_h">km/h</string>
 	<string name="m">m</string>
 	<string name="old_map_index_is_not_supported">Deprecated map data format \'\'{0}\'\' is not supported</string>
-	<string name="poi_filter_car_aid">Car aid</string>
 	<string name="poi_filter_closest_poi">Closest POI</string>
 	<string name="poi_filter_custom_filter">Custom filter</string>
-	<string name="poi_filter_food_shop">Food shop</string>
-	<string name="poi_filter_for_tourists">For tourists</string>
-	<string name="poi_filter_fuel">Fuel</string>
 	<string name="poi_filter_namefinder">Online NameFinder</string>
 	<string name="reading_cached_tiles">Reading cached tiles&#8230;</string>
 	<string name="version_index_is_big_for_memory">The index \'\'{0}\'\' did not fit into memory</string>
@@ -732,7 +791,7 @@
 	<string name="specified_dir_doesnt_exist">Can not find specified directory.</string>
 	<string name="application_dir">Storage directory</string>
 	<string name="application_dir_change_warning">Changing the storage directory will not move or delete the data. This must be performed separately and outside OsmAnd. Continue anyway?</string>
-	<string name="osmand_net_previously_installed">A previous OsmAnd version is installed. All offline data will be supported by new the new application. But Favorite points should be exported in the old application and later imported by the new one.</string>
+	<string name="osmand_net_previously_installed">A previous OsmAnd version is installed. All offline data will be supported by the new application. But Favorite points should be exported in the old application and later imported by the new one.</string>
 	<string name="build_installed">Build {0} successfully installed ({1}).</string>
 	<string name="downloading_build">Downloading build&#8230;</string>
 	<string name="install_selected_build">Do you want to install OsmAnd - {0} from {1} {2} MB ?</string>
@@ -979,7 +1038,7 @@
 	<string name="data_settings_descr">Specify language, download/reload data</string>
 	<string name="data_settings">Data</string>
 	<string name="map_preferences_descr">Specify map settings: map source, rotation, marker position, screen orientation</string>
-	<string name="osm_settings">OSM Editing</string>
+	<string name="osm_settings">OSM editing</string>
 	<string name="additional_settings">Additional settings</string>
 	<string name="settings">Settings</string>
 	<string name="save_current_track_descr">Save current track to SD now</string>
@@ -988,7 +1047,6 @@
 	<string name="save_track_interval_descr">Choose positioning interval for tracks</string>
 	<string name="save_track_to_gpx_descrp">Tracks will be saved to track directory grouped by days</string>
 	<string name="save_track_to_gpx">Log track to GPX file</string>
-	<string name="navigate_to">Set as destination</string>
 	<string name="update_tile">Update map</string>
 	<string name="reload_tile">Reload tile</string>
 	<string name="mark_point">Target</string>
@@ -1030,7 +1088,6 @@
 	<string name="search_activity">Search</string>
 	<string name="searchpoi_activity">Choose POI</string>
 	<string name="search_POI_level_btn">Find more</string>
-	<string name="incremental_search_city">Search city incrementally. To find towns/postcodes, enter the first 3 or more characters.</string>
 	<string name="incremental_search_street">Search street incrementally</string>
 	<string name="incremental_search_building">Search building incrementally</string>
 	<string name="choose_available_region">Choose region from list</string>

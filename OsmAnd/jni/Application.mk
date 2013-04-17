@@ -7,13 +7,15 @@ APP_ABI := x86
 else
 ifdef OSMAND_ARM_ONLY
 APP_ABI := armeabi armeabi-v7a
-endif
+else
 ifdef OSMAND_ARMv5_ONLY
 APP_ABI := armeabi
 endif
 ifdef OSMAND_ARMv7a_ONLY
 APP_ABI := armeabi-v7a
 endif
+endif
+
 endif
 
 ifndef OSMAND_DEBUG_NATIVE

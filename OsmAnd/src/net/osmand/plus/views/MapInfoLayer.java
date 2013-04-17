@@ -42,6 +42,7 @@ import android.text.TextPaint;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
@@ -87,7 +88,7 @@ public class MapInfoLayer extends OsmandMapLayer {
 	private MapInfoControls mapInfoControls;
 	private TopTextView topText;
 
-	private LockInfoControl lockInfoControl;
+	private MonitoringInfoControl monitoringServices;
 
 	private String ADDITIONAL_VECTOR_RENDERING_CATEGORY;
 
@@ -138,7 +139,7 @@ public class MapInfoLayer extends OsmandMapLayer {
 		
 
 		mapInfoControls = new MapInfoControls(map.getMyApplication().getSettings());
-		lockInfoControl = new LockInfoControl();
+		monitoringServices = new MonitoringInfoControl();
 	}
 	
 	
@@ -158,8 +159,8 @@ public class MapInfoLayer extends OsmandMapLayer {
 		return paintSubText;
 	}
 	
-	public LockInfoControl getLockInfoControl() {
-		return lockInfoControl;
+	public MonitoringInfoControl getMonitoringInfoControl() {
+		return monitoringServices;
 	}
 	
 	public MapInfoControls getMapInfoControls() {
@@ -205,6 +206,8 @@ public class MapInfoLayer extends OsmandMapLayer {
 		}
 		if(topText.getShadowColor() != shadowColor) {
 			topText.setShadowColor(shadowColor);
+			leftStack.setShadowColor(shadowColor);
+			rightStack.setShadowColor(shadowColor);
 		}
 	}
 	
@@ -219,7 +222,9 @@ public class MapInfoLayer extends OsmandMapLayer {
 				view.getContext(), view.getSettings());
 		// register right stack
 		EnumSet<ApplicationMode> all = EnumSet.allOf(ApplicationMode.class);
+		EnumSet<ApplicationMode> carDefault = EnumSet.of(ApplicationMode.CAR, ApplicationMode.DEFAULT);
 		EnumSet<ApplicationMode> bicyclePedestrian = EnumSet.of(ApplicationMode.BICYCLE, ApplicationMode.PEDESTRIAN);
+		EnumSet<ApplicationMode> exceptCar = EnumSet.of(ApplicationMode.BICYCLE, ApplicationMode.PEDESTRIAN, ApplicationMode.DEFAULT);
 		EnumSet<ApplicationMode> none = EnumSet.noneOf(ApplicationMode.class);
 		RoutingHelper routingHelper = view.getApplication().getRoutingHelper();
 		NextTurnInfoControl bigInfoControl = ric.createNextInfoControl(routingHelper, view.getApplication(), view.getSettings(), paintText,
@@ -227,16 +232,19 @@ public class MapInfoLayer extends OsmandMapLayer {
 		mapInfoControls.registerSideWidget(bigInfoControl, R.drawable.widget_next_turn, R.string.map_widget_next_turn,"next_turn", true, all, none, 5);
                 /*
                 // TODO(natashaj): Remove for prototype
+		mapInfoControls.registerSideWidget(bigInfoControl, R.drawable.widget_next_turn, R.string.map_widget_next_turn,"next_turn", true, carDefault, none, 5);
 		NextTurnInfoControl smallInfoControl = ric.createNextInfoControl(routingHelper, view.getApplication(), view.getSettings(),
 				paintSmallText, paintSmallSubText, true);
 		mapInfoControls.registerSideWidget(smallInfoControl, R.drawable.widget_next_turn, R.string.map_widget_next_turn_small, "next_turn_small", true, bicyclePedestrian, none, 10);
-                NextTurnInfoControl nextNextInfoControl = ric.createNextNextInfoControl(routingHelper, view.getApplication(), view.getSettings(),
-                		paintSmallText, paintSmallSubText, true);
-		mapInfoControls.registerSideWidget(nextNextInfoControl, R.drawable.widget_next_turn, R.string.map_widget_next_next_turn, "next_next_turn",true, all, none, 15);
+		NextTurnInfoControl nextNextInfoControl = ric.createNextNextInfoControl(routingHelper, view.getApplication(), view.getSettings(),
+				paintSmallText, paintSmallSubText, true);
+		mapInfoControls.registerSideWidget(nextNextInfoControl, R.drawable.widget_next_turn, R.string.map_widget_next_next_turn, "next_next_turn",true, carDefault, none, 15);
 		*/
 		//MiniMapControl miniMap = ric.createMiniMapControl(routingHelper, view);
 		//mapInfoControls.registerSideWidget(miniMap, R.drawable.widget_next_turn, R.string.map_widget_mini_route, "mini_route", true, none, none, 20);
-		// left stack
+		// right stack
+		TextInfoControl intermediateDist = ric.createIntermediateDistanceControl(map, paintText, paintSubText);
+		mapInfoControls.registerSideWidget(intermediateDist, R.drawable.widget_intermediate, R.string.map_widget_intermediate_distance, "intermediate_distance", false, all, none, 3);
 		TextInfoControl dist = ric.createDistanceControl(map, paintText, paintSubText);
 		mapInfoControls.registerSideWidget(dist, R.drawable.widget_target, R.string.map_widget_distance, "distance", true, all, none, 5);
 		TextInfoControl time = ric.createTimeControl(map, paintText, paintSubText);
@@ -253,16 +261,20 @@ public class MapInfoLayer extends OsmandMapLayer {
 		ImageViewControl compassView = createCompassView(map);
 		mapInfoControls.registerTopWidget(compassView, R.drawable.compass, R.string.map_widget_compass, "compass", MapInfoControls.LEFT_CONTROL, all, 5);
 		View config = createConfiguration();
-		mapInfoControls.registerTopWidget(config, R.drawable.widget_config, R.string.map_widget_config, "config", MapInfoControls.RIGHT_CONTROL, all, 10).required(ApplicationMode.values());
-		ImageView lockView = lockInfoControl.createLockScreenWidget(view, map);
-		mapInfoControls.registerTopWidget(lockView, R.drawable.lock_enabled, R.string.bg_service_screen_lock, "bgService", MapInfoControls.LEFT_CONTROL, all, 15);
+		mapInfoControls.registerTopWidget(config, R.drawable.widget_config, R.string.map_widget_config, "config", MapInfoControls.RIGHT_CONTROL, all, 10).required(ApplicationMode.DEFAULT);
+		mapInfoControls.registerTopWidget(monitoringServices.createMonitoringWidget(view, map), R.drawable.monitoring, R.string.map_widget_monitoring_services,
+				"monitoring_services", MapInfoControls.LEFT_CONTROL, exceptCar, 12);
+		mapInfoControls.registerTopWidget(createLockInfo(map), R.drawable.lock_enabled, R.string.bg_service_screen_lock, "bgService", 
+				MapInfoControls.LEFT_CONTROL, none, 15);
 		backToLocation = createBackToLocation(map);
 		mapInfoControls.registerTopWidget(backToLocation, R.drawable.default_location, R.string.map_widget_back_to_loc, "back_to_location", MapInfoControls.RIGHT_CONTROL, all, 5);
+		
+		
 		View globus = createGlobus();
 		mapInfoControls.registerTopWidget(globus, R.drawable.globus, R.string.map_widget_map_select, "progress", MapInfoControls.RIGHT_CONTROL, none, 15);
 		
 		topText = new TopTextView(routingHelper, map);
-		mapInfoControls.registerTopWidget(topText, R.drawable.street_name, R.string.map_widget_top_text, "street_name", MapInfoControls.MAIN_CONTROL, all, 100);
+		mapInfoControls.registerTopWidget(topText, R.drawable.street_name, R.string.map_widget_top_text, "street_name", MapInfoControls.MAIN_CONTROL, carDefault, 100);
 		
 		// Register appearance widgets
 		registerAppearanceWidgets();
@@ -353,6 +365,8 @@ public class MapInfoLayer extends OsmandMapLayer {
 		final OsmandApplication app = view.getApplication();
 		for (final RenderingRuleProperty p : renderer.PROPS.getCustomRules()) {
 			String propertyName = SettingsActivity.getStringPropertyName(view.getContext(), p.getAttrName(), p.getName());
+			//test old descr as title
+			final String propertyDescr = SettingsActivity.getStringPropertyDescription(view.getContext(), p.getAttrName(), p.getName());
 			if(p.isBoolean()) {
 				final CommonPreference<Boolean> pref = view.getApplication().getSettings().getCustomRenderBooleanProperty(p.getAttrName());
 				int icon = 0;
@@ -384,6 +398,8 @@ public class MapInfoLayer extends OsmandMapLayer {
 					@Override
 					public void run() {
 						Builder b = new AlertDialog.Builder(view.getContext());
+						//test old descr as title
+						b.setTitle(propertyDescr);
 						int i = Arrays.asList(p.getPossibleValues()).indexOf(pref.get());
 						b.setSingleChoiceItems(p.getPossibleValues(), i, new OnClickListener() {
 							@Override
@@ -559,7 +575,7 @@ public class MapInfoLayer extends OsmandMapLayer {
 					final boolean selecteable = mi.selecteable();
 					ch.setOnCheckedChangeListener(null);
 					if(!mi.selecteable()) {
-						ch.setVisibility(View.INVISIBLE);
+						ch.setVisibility(View.GONE);
 					} else {
 						boolean check = mi.visibleCollapsed(mode) || mi.visible(mode);
 						ch.setChecked(check);
@@ -722,6 +738,71 @@ public class MapInfoLayer extends OsmandMapLayer {
 		return backToLocation;
 	}
 	
+	private ImageView createLockInfo(final MapActivity map) {
+		final ImageView lockView = new ImageView(view.getContext());
+		final Drawable lockEnabled = view.getResources().getDrawable(R.drawable.lock_enabled);
+		final Drawable lockDisabled = view.getResources().getDrawable(R.drawable.lock_disabled);
+		lockView.setBackgroundDrawable(lockDisabled);
+		final FrameLayout transparentLockView = new FrameLayout(view.getContext());
+		FrameLayout.LayoutParams fparams = new FrameLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT, Gravity.CENTER);
+		transparentLockView.setLayoutParams(fparams);
+		transparentLockView.setOnTouchListener(new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_UP) {
+					int[] locs = new int[2];
+					lockView.getLocationOnScreen(locs);
+					int x = (int) event.getX() - locs[0];
+					int y = (int) event.getY() - locs[1];
+					transparentLockView.getLocationOnScreen(locs);
+					x += locs[0];
+					y += locs[1];
+					if (lockView.getWidth() >= x && x >= 0 && lockView.getHeight() >= y && y >= 0) {
+						lockView.performClick();
+						return true;
+					}
+					blinkIcon();
+					AccessibleToast.makeText(transparentLockView.getContext(), R.string.screen_is_locked, Toast.LENGTH_LONG).show();
+					return true;
+				}
+				return true;
+			}
+
+			private void blinkIcon() {
+				lockView.setBackgroundDrawable(lockDisabled);
+				view.postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						lockView.setBackgroundDrawable(lockEnabled);
+					}
+				}, 300);
+			}
+
+		});
+		final FrameLayout parent = (FrameLayout) view.getParent();
+		lockView.setOnClickListener(new View.OnClickListener() {
+			protected boolean isScreenLocked;
+
+			@Override
+			public void onClick(View v) {
+				if (!isScreenLocked) {
+					parent.addView(transparentLockView);
+					map.backToLocationImpl();
+				} else {
+					parent.removeView(transparentLockView);
+				}
+				isScreenLocked = !isScreenLocked;
+				if (isScreenLocked) {
+					lockView.setBackgroundDrawable(lockEnabled);
+				} else {
+					lockView.setBackgroundDrawable(lockDisabled);
+				}
+				map.backToLocationImpl();
+			}
+		});
+		return lockView;
+	}
+	
 	
 	private ImageViewControl createCompassView(final MapActivity map){
 		final Drawable compass = map.getResources().getDrawable(R.drawable.compass);
@@ -808,7 +889,7 @@ public class MapInfoLayer extends OsmandMapLayer {
 					pp.setTextSize(20 * scaleCoefficient);
 					float ts = pp.measureText(text);
 					int wth = getWidth();
-					while (ts > wth && pp.getTextSize() > (14 * scaleCoefficient)) {
+					while (ts > wth && pp.getTextSize() > (16 * scaleCoefficient)) {
 						pp.setTextSize(pp.getTextSize() - 1);
 						ts = pp.measureText(text);
 					}

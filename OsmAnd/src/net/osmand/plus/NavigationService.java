@@ -1,6 +1,7 @@
 package net.osmand.plus;
 
 
+import net.osmand.LogUtil;
 import net.osmand.Version;
 import net.osmand.access.AccessibleToast;
 import net.osmand.plus.activities.LiveMonitoringHelper;
@@ -26,6 +27,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.os.SystemClock;
+import android.util.Log;
 import android.widget.Toast;
 
 public class NavigationService extends Service implements LocationListener {
@@ -33,8 +35,10 @@ public class NavigationService extends Service implements LocationListener {
 	public static class NavigationServiceBinder extends Binder {
 		
 	}
-	private final static int NOTIFICATION_SERVICE_ID = 1;
+	// global id don't conflict with others
+	private final static int NOTIFICATION_SERVICE_ID = 5;
 	public final static String OSMAND_STOP_SERVICE_ACTION  = "OSMAND_STOP_SERVICE_ACTION"; //$NON-NLS-1$
+	public final static String NAVIGATION_START_SERVICE_PARAM = "NAVIGATION_START_SERVICE_PARAM"; 
 	private static final int LOST_LOCATION_MSG_ID = 10;
 	private static final long LOST_LOCATION_CHECK_DELAY = 20000;
 	
@@ -55,6 +59,7 @@ public class NavigationService extends Service implements LocationListener {
 	private PendingIntent pendingIntent;
 	private BroadcastReceiver broadcastReceiver;
 	private LiveMonitoringHelper liveMonitoringHelper;
+	private boolean startedForNavigation;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -85,14 +90,20 @@ public class NavigationService extends Service implements LocationListener {
 		return serviceOffProvider;
 	}
 	
+	public boolean startedForNavigation(){
+		return startedForNavigation;
+	}
 	@Override
-	public void onCreate() {
-		super.onCreate();
-		// initializing variables
-		//setForeground(true);
+	public int onStartCommand(Intent intent, int flags, int startId) {
 		handler = new Handler();
 		settings = ((OsmandApplication) getApplication()).getSettings();
-		serviceOffInterval = settings.SERVICE_OFF_INTERVAL.get();
+		
+		startedForNavigation = intent.getBooleanExtra(NAVIGATION_START_SERVICE_PARAM, false);
+		if (startedForNavigation) {
+			serviceOffInterval = 0;
+		} else {
+			serviceOffInterval = settings.SERVICE_OFF_INTERVAL.get();
+		}
 		// use only gps provider
 		serviceOffProvider = LocationManager.GPS_PROVIDER;
 		serviceError = serviceOffInterval / 5;
@@ -114,7 +125,12 @@ public class NavigationService extends Service implements LocationListener {
 		if(isContinuous()){
 			// request location updates
 			LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-			locationManager.requestLocationUpdates(serviceOffProvider, 0, 0, NavigationService.this);
+			try {
+				locationManager.requestLocationUpdates(serviceOffProvider, 0, 0, NavigationService.this);
+			} catch (IllegalArgumentException e) {
+				Toast.makeText(this, R.string.gps_not_available, Toast.LENGTH_LONG).show();
+				Log.d(LogUtil.TAG, "GPS location provider not available"); //$NON-NLS-1$
+			}
 		} else {
 			AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 			pendingIntent = PendingIntent.getBroadcast(this, 0, new Intent(this, OnNavigationServiceAlarmReceiver.class), PendingIntent.FLAG_UPDATE_CURRENT);
@@ -122,23 +138,33 @@ public class NavigationService extends Service implements LocationListener {
 		}
 			
 		// registering icon at top level
-		broadcastReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				NavigationService.this.stopSelf();
-			}
+		// Leave icon visible even for navigation for proper testing
+//		if (!startedForNavigation) {
+			broadcastReceiver = new BroadcastReceiver() {
+				@Override
+				public void onReceive(Context context, Intent intent) {
+					NavigationService.this.stopSelf();
+				}
 
-		};
-		registerReceiver(broadcastReceiver, new IntentFilter(OSMAND_STOP_SERVICE_ACTION));
-		Intent notificationIntent = new Intent(OSMAND_STOP_SERVICE_ACTION);
-		Notification notification = new Notification(R.drawable.bgs_icon, "", //$NON-NLS-1$
-				System.currentTimeMillis());
-		notification.flags = Notification.FLAG_NO_CLEAR;
-		notification.setLatestEventInfo(this, Version.getAppName(this),
-				getString(R.string.service_stop_background_service), PendingIntent.getBroadcast(this, 0, notificationIntent, 
-						PendingIntent.FLAG_UPDATE_CURRENT));
-		NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		mNotificationManager.notify(NOTIFICATION_SERVICE_ID, notification);
+			};
+			registerReceiver(broadcastReceiver, new IntentFilter(OSMAND_STOP_SERVICE_ACTION));
+			Intent notificationIntent = new Intent(OSMAND_STOP_SERVICE_ACTION);
+			Notification notification = new Notification(R.drawable.bgs_icon, "", //$NON-NLS-1$
+					System.currentTimeMillis());
+			notification.flags = Notification.FLAG_NO_CLEAR;
+			notification.setLatestEventInfo(this, Version.getAppName(this), getString(R.string.service_stop_background_service),
+					PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT));
+			NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			mNotificationManager.notify(NOTIFICATION_SERVICE_ID, notification);
+//		}
+		return START_REDELIVER_INTENT;
+	}
+	
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		// initializing variables
+		//setForeground(true);
 	}
 	
 	private boolean isContinuous(){
@@ -207,8 +233,10 @@ public class NavigationService extends Service implements LocationListener {
 			long locationTime = System.currentTimeMillis();
 			savingTrackHelper.insertData(location.getLatitude(), location.getLongitude(), location.getAltitude(),
 					location.getSpeed(), location.getAccuracy(), locationTime, settings);
-			liveMonitoringHelper.insertData(location.getLatitude(), location.getLongitude(), location.getAltitude(),
-					location.getSpeed(), location.getAccuracy(), locationTime, settings);
+			if(liveMonitoringHelper.isLiveMonitoringEnabled()) {
+				liveMonitoringHelper.insertData(location.getLatitude(), location.getLongitude(), location.getAltitude(),
+						location.getSpeed(), location.getAccuracy(), locationTime, settings);
+			}
 			if(routingHelper.isFollowingMode()){
 				routingHelper.setCurrentLocation(location, false);
 			}

@@ -10,6 +10,7 @@ import net.osmand.plus.OsmandSettings;
 import net.osmand.plus.OsmandSettings.MetricsConstants;
 import net.osmand.plus.R;
 import net.osmand.plus.SpecialPhrases;
+import net.osmand.plus.activities.ApplicationMode;
 import android.content.Context;
 
 public class OsmAndFormatter {
@@ -97,16 +98,29 @@ public class OsmAndFormatter {
 	public static String getFormattedSpeed(float metersperseconds, Context ctx) {
 		OsmandSettings settings = ((OsmandApplication) ctx.getApplicationContext()).getSettings();
 		MetricsConstants mc = settings.METRIC_SYSTEM.get();
+		ApplicationMode am = settings.getApplicationMode();
 		float kmh = metersperseconds * 3.6f;
-		if(mc == MetricsConstants.KILOMETERS_AND_METERS){
-			return ((int) kmh) + " " + ctx.getString(R.string.km_h);
+		if (mc == MetricsConstants.KILOMETERS_AND_METERS) {
+			if (kmh >= 15 || (am == ApplicationMode.CAR)) {
+				return ((int) kmh) + " " + ctx.getString(R.string.km_h);
+			}
+			int kmh10 = (int) (kmh * 10f);
+			if (kmh10 % 10 == 0) {
+				return (kmh10 / 10) + " " + ctx.getString(R.string.km_h);
+			} else {
+				return (kmh10 / 10f) + " " + ctx.getString(R.string.km_h);
+			}
 		} else {
 			float mph = kmh * METERS_IN_KILOMETER / METERS_IN_ONE_MILE;
-			if(mph >= 10) {
-				return ((int) (mph)) + " "+ ctx.getString(R.string.mile_per_hour);
+			if (mph >= 10) {
+				return ((int) (mph)) + " " + ctx.getString(R.string.mile_per_hour);
 			} else {
-				mph = ((int)mph*10f)/10f;
-				return mph + " "+ ctx.getString(R.string.mile_per_hour);
+				int mph10 = (int) (mph * 10f);
+				if(mph10 % 10 == 0) {
+					return (mph10 / 10) + " " + ctx.getString(R.string.mile_per_hour);
+				} else { 
+					return (mph10 / 10f) + " " + ctx.getString(R.string.mile_per_hour);
+				}
 			}
 		}
 	}
@@ -184,19 +198,17 @@ public class OsmAndFormatter {
 		return toPublicString(amenity.getType(), ctx) + " : " + getPoiStringWithoutType(amenity, en); //$NON-NLS-1$
 	}
 	
-	public static String getPoiStringWithoutType(Amenity amenity, boolean en){
+	public static String getPoiStringWithoutType(Amenity amenity, boolean en) {
 		String type = SpecialPhrases.getSpecialPhrase(amenity.getSubType());
 		String n = amenity.getName(en);
-		
-		if(type == null) type = amenity.getSubType();
-		if(n.indexOf(type) != -1){
+		if (n.indexOf(type) != -1) {
 			// type is contained in name e.g.
 			// n = "Bakery the Corner"
 			// type = "Bakery"
 			// no need to repeat this
-			return n; 
+			return n;
 		}
-		if(n.length() == 0){
+		if (n.length() == 0) {
 			return type;
 		}
 		return type + " " + n; //$NON-NLS-1$

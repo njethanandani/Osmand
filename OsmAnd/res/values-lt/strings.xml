@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources><string name="starting_point_too_far">Pradžios taškas yra per toli nuo artimiausio kelio.</string>
   <string name="shared_location">Bendrinta vieta</string>
-  <string name="osmand_parking_event">Pasiimkite automobilį iš statymo vietos</string>
   <string name="osmand_parking_warning">Dėmesio</string>
   <string name="osmand_parking_warning_text">Perspėjimas pasiimti automobilį jau buvo įtrauktas į jūsų kalendorių. Perspėjimas ten liks tol, kol jo nepanaikinsite.</string>
   <string name="osmand_parking_time_limit_title">Nustatyti statymo trukmę</string>
@@ -34,7 +33,6 @@
 \n\t* Patobulinti balso nurodymai greitkeliams
 \n\t* Automobilio statymo įskiepis (\'Kur pastatyta mano mašina?\')
 \n\t* Stebėjimo įjungimo/išjungimo valdiklis
-
 </string>
   <string name="asap">Tuoj pat</string>
   <string name="save_route_as_gpx">Išsaugoti maršrutą GPX faile</string>
@@ -44,8 +42,8 @@
   <string name="rendering_attr_noPolygons_description">Visus aplinkos objektus pažymėtus žemėlapyje daryti skaidriais</string>
   <string name="rendering_attr_noPolygons_name">Jokių daugiakampių</string>
   <string name="rendering_attr_appMode_name">Vaizdavimo režimas</string>
-  <string name="rendering_attr_appMode_description">Žemėlapio optimizavimas atitinkamam vartotojo profiliui</string>
-  <string name="rendering_attr_contourLines_description">Pasirinkti minimalų žemėlapio rodymo mastelį, jei toks yra. Gali reikėti atskiro SRTM failo.</string>
+  <string name="rendering_attr_appMode_description">Žemėlapį optimizuoti</string>
+  <string name="rendering_attr_contourLines_description">Rodyti pradedant masteliu (reikia SRTM failo):</string>
   <string name="rendering_attr_contourLines_name">Rodyti kontūrų linijas</string>
   <string name="rendering_attr_hmRendered_description">Padidinti rodomų žemėlapio detalių kiekį</string>
   <string name="rendering_attr_hmRendered_name">Rodyti daugiau žemėlapio detalių</string>
@@ -60,13 +58,13 @@
   <string name="offline_navigation_not_available">Vidinė (be interneto) OsmAnd navigacija laikinai neprieinama.</string>
   <string name="left_side_navigation">Važiavimas kairiąja kelio puse</string>
   <string name="left_side_navigation_descr">Pasirinkite šalims, kuriose važiuojama kairiąja kelio puse</string>
-  <string name="download_link_and_local_description">Spauskite čia duomenų parsiuntimui į įrenginį arba parsiųstų duomenų atnaujinimui. \nNorėdami pamatyti detalią informaciją paspauskite ant dominančio elemento. Paspauskite ir laikykite elementą norėdami jį deaktyvuoti ar panaikinti. Duomenys įrenginyje (%1$s laisva):</string>
+  <string name="download_link_and_local_description">Spauskite čia duomenų parsiuntimui į įrenginį arba parsiųstų duomenų atnaujinimui. \nNorėdami pamatyti detalią informaciją paspauskite ant dominančio elemento. Paspauskite ir laikykite elementą norėdami jį deaktyvuoti ar panaikinti. Duomenys įrenginyje (laisva %1$s):</string>
   <string name="unknown_from_location">Pradžios taškas dar nenustatytas</string>
   <string name="unknown_location">Vieta dar nežinoma</string>
   <string name="context_menu_item_directions">Maršrutas į čia</string>
   <string name="modify_transparency">Pakeisti skaidrumą (0 - permatoma, 255 - nepermatoma)</string>
   <string name="confirm_interrupt_download">Ar norite nutraukti failų parsiuntimą?</string>
-  <string name="first_time_msg">Pagrindinių programos funkcijų naudojimui įrenginyje turi būti regiono duomenys, kuriuos galite parsisiųsti (atverkite Nustatymus, Vietinius duomenis). Tik po to galėsite ieškoti adreso, LV ar viešojo transporto.</string>
+  <string name="first_time_msg">Ačiū kad naudojate OsmAnd. Pagrindinių programos funkcijų naudojimui įrenginyje turi būti regiono duomenys, kuriuos galite parsisiųsti \'Nustatymai\' -&gt;  \'Parsiųsti duomenys\'. Tik po to galėsite ieškoti adreso, LV ar viešojo transporto.</string>
   <string name="basemap_was_selected_to_download">Programos funkcionavimui reikalingas bazinis žemėlapis. Jis buvo pažymėtas parsiuntimui.</string>
   <string name="select_index_file_to_download">Nieko nerasta. Jei nerandate savo regiono, jį galite pasigaminti patys (eikite į http://osmand.net).</string>
   <string name="local_indexes_cat_tile">Žemėlapiai internete</string>
@@ -122,7 +120,7 @@
   <string name="gpx_visibility_txt">Matomumas</string>
   <string name="gpx_tags_txt">Etiketės</string>
   <string name="gpx_description_txt">Aprašymas</string>
-  <string name="validate_gpx_upload_name_pwd">GPX failų persiuntimui būtina nurodyti OSM vartotojo vardą ir slaptažodį.</string>
+  <string name="validate_gpx_upload_name_pwd">Nurodykite savo OSM vartotojo vardą ir slaptažodį GPX failų persiuntimui.</string>
   <string name="default_buttons_support">Parama</string>
   <string name="support_new_features">Paremti naują funkcionalumą</string>
   <string name="show_ruler_level_descr">Rodyti liniuotę ant žemėlapio</string>
@@ -189,7 +187,7 @@
   <string name="rendering_out_of_memory">Pasirinktos vietos atvaizdavimui nepakanka atminties</string>
   <string name="use_fluorescent_overlays">Fluorescentiniai viršutiniai sluoksniai</string>
   <string name="use_fluorescent_overlays_descr">Maršruto ir kelionės istorijos rodymui naudoti fluorescentines spalvas</string>
-  <string name="offline_edition">Redagavimas neprisijungus prie interneto</string>
+  <string name="offline_edition">Redagavimas be interneto</string>
   <string name="offline_edition_descr">Visada redaguoti neprisijungus prie interneto</string>
   <string name="tip_recent_changes_0_7_1_t">Pakeitimai 0.7.1 versijoje :
 \n\t- LV redagavimas be interneto
@@ -213,11 +211,11 @@
   <string name="local_openstreetmap_settings">Įrenginyje išsaugoti LV/pranešimai apie klaidas</string>
   <string name="local_openstreetmap_settings_descr">Rodyti ir valdyti OSM LV/pranešimus apie klaidas išsaugotus įrenginio duomenų bazėje</string>
   <string name="live_monitoring_descr">Siųsti sekimo informaciją nurodytai tarnybai</string>
-  <string name="live_monitoring">Sekimas gyvai internete</string>
-  <string name="live_monitoring_interval_descr">Nurodyti sekimo gyvai intervalą</string>
-  <string name="live_monitoring_interval">Sekimo gyvai intervalas</string>
+  <string name="live_monitoring">Tiesioginis sekimas internete</string>
+  <string name="live_monitoring_interval_descr">Nurodyti tiesioginio sekimo intervalą</string>
+  <string name="live_monitoring_interval">Tiesioginio sekimo intervalas</string>
   <string name="live_monitoring_url_descr">Nurodykite interneto adresą su tokia parametrų sintakse : lat={0}, lon={1}, timestamp={2}, hdop={3}, altitude={4}, speed={5}</string>
-  <string name="live_monitoring_url">Sekimo gyvai tarnybos interneto adresas</string>
+  <string name="live_monitoring_url">Tiesioginio sekimo tarnybos interneto adresas</string>
   <string name="gpx_monitoring_disabled_warn">Turite įjungti \'Išsaugoti kelionės istoriją į GPX\' sekimo nustatymą.</string>
   <string name="show_current_gpx_title">Rodyti dabartinės kelionės istoriją</string>
   <string name="tip_recent_changes_0_7_0_t">Pakeitimai 0.7.0 versijoje :
@@ -247,11 +245,11 @@
   <string name="amenity_type_user_defined">Nustatyta vartotojo</string>
   <string name="fav_export_confirmation">Failas su anksčiau eksportuotomis išsaugotomis vietomis jau egzistuoja. Ar norite jį pakeisti kitu?</string>
   <string name="profile_settings">Specifiniai profilio nustatymai</string>
-  <string name="settings_preset">Vartotojo profilis</string>
-  <string name="settings_preset_descr">Pasirinkite vartotojo profilį su individualiu žemėlapiu ir navigacijos nustatymais.</string>
+  <string name="settings_preset">Naudojimo profilis</string>
+  <string name="settings_preset_descr">Pasirinkite naudojimo profilį su individualiu žemėlapiu ir navigacijos nustatymais.</string>
   <string name="monitor_preferences">- Sekimas</string>
   <string name="monitor_preferences_descr">Nurodykite sekimo nustatymus</string>
-  <string name="routing_settings">- Navigacija</string>
+  <string name="routing_settings">Navigacija</string>
   <string name="routing_settings_descr">Nurodykite navigacijos nustatymus</string>
   <string name="global_settings">Globalūs nustatymai</string>
   <string name="index_settings">Duomenys įrenginyje (parsiųsti)</string>
@@ -261,7 +259,7 @@
   <string name="user_name">Jūsų OSM vartotojo vardas</string>
   <string name="user_name_descr">Reikalingas norint teikti duomenis į openstreetmap.org</string>
   <string name="user_password">Jūsų OSM slaptažodis</string>
-  <string name="user_password_descr">Reikalinga norint teikti duomenis į openstreetmap.org</string>
+  <string name="user_password_descr">Reikalingas norint teikti duomenis į openstreetmap.org</string>
   <string name="osmand_service">Miego režimo funkcionalumas</string>
   <string name="osmand_service_descr">Reikalinga jei norite naudoti OsmAnd kai ekranas yra išjungtas</string>
   <string name="tip_rotation_switching">Žemėlapio orientacija</string>
@@ -282,7 +280,7 @@
 \n\t\'Naktis\' - visada naudos nakties režimą
 \n\t\'Šviesos sensorius\' - žemėlapio išvaizda bus valdoma jūsų įrenginyje esančio (jei yra) šviesos sensoriaus
 </string>
-  <string name="tip_osm_improve">Tobulinti OSM duomenys</string>
+  <string name="tip_osm_improve">OSM duomenų tobulinimas</string>
   <string name="tip_osm_improve_t">\tOsmAnd naudoja žemėlapius pagamintus Openstreetmap.org (OSM) duomenų pagrindu ir programa šalia žemėlapių peržiūros ar navigacijos gali būti naudojama OSM duomenų kokybei gerinti. Vos keliais paspaudimais jūs galite sukurti ir nusiųsti į OSM naujas LV ar pastebėtas OSM klaidas!
 \n\tTam pirmiausia jums reikės nuėjus į \'Nustatymai\' -&gt; \'Bendri nustatymai\' -&gt; \'OSM redagavimas\' nurodyti savo OSM prisijungimo informaciją.
 \n\tNorėdami sukurti naują LV naudokitės \'Sukurti LV\' iš žemėlapio kontekstinio meniu. Įveskite informaciją apie naują LV į atsivėrusį \'Sukurti LV\' dialogą ir galiausiai išsaugokite ją.
@@ -291,9 +289,9 @@
 \n\tAtminkite, kad pranešimams apie naujas LV ar žemėlapių klaidas perduoti būtinas interneto ryšys.</string>
   <string name="download_files_not_enough_space">Neužtenka vietos parsiųsti %1$s MB (laisva: %2$s).</string>
   <string name="download_files_question_space">Dabar laisvos vietos yra {2} MB! Parsiųsti {0} failą(-us) ({1} MB)?</string>
-  <string name="tip_select_destination_point">Pasirinkti kelionės tikslą</string>
-  <string name="tip_select_destination_point_t">\tKelionės tikslą jūs galite pasirinkti tiesiog žemėlapyje (kontekstiniame meniu pasirinkite \'Kelionės tikslas\'), visose paieškose arba ilgai paspaudus įrašą esantį \'Išsaugotų vietų sąrašas\' sąraše.
-\n\tKalionės tikslas žemėlapyje būna pažymėtas oranžiniu disku ir OsmAnd rodo kryptį ir atstumą iki jo (oranžinis trikampis).</string>
+  <string name="tip_select_destination_point">Kelionės tikslo pasirinkimas</string>
+  <string name="tip_select_destination_point_t">"\tKelionės tikslą jūs galite pasirinkti tiesiog žemėlapyje (kontekstiniame meniu pasirinkite \'Nustatyti kelionės tikslu\'), visose paieškose arba ilgai paspaudus įrašą esantį \'Išsaugotos vietos\' sąraše.
+\n\tKelionės tikslas žemėlapyje būna pažymėtas oranžiniu disku ir OsmAnd rodo kryptį ir atstumą iki jo (oranžinis trikampis). "</string>
   <string name="tip_recent_changes_0_6_9_t">Pakeitimai 0.6.9 versijoje :
 \n\t- Patobulintas parsiųstų žemėlapių atvaizdavimas
 \n\t- Greitas aparatinis parsiųstų žemėlapių vaizdavimas - ieškokite eksperimentinėse savybėse (dalyje įrenginių gali neveikti)
@@ -334,7 +332,6 @@
 \n\t- LV duomenys įtraukti į .obf failą (visi po 2011-10-01 parsiųsti indeksai) 
 \n\t- Pataisyti balso pranešimais (GPS vietos pataisymas, praleidžiama pirma komanda) 
 \n\t- Smulkūs patobulinimai
-
 </string>
   <string name="file_can_not_be_renamed">Failo pavadinimo pakeisti negalima.</string>
   <string name="file_with_name_already_exists">Failas tokiu pavadinimu jau yra.</string>
@@ -371,7 +368,6 @@
 \n\t- Pagerintas vektorinių žemėlapių vaizdavimas 
 \n\t- Patobulintas TTS variklis (pranešimai apie tikslų atstumą, pranešimai myliomis) 
 \n\t- Klaidų ištaisymai
-
 </string>
   <string name="save_route_dialog_title">Išsaugoti maršrutą į GPX failą</string>
   <string name="route_successfully_saved_at">Maršrutas sėkmingai išsaugotas faile \'%1$s\'.</string>
@@ -399,7 +395,7 @@
   <string name="local_index_gpx_info_speed">\nVidutinis greitis : %1$s \nDidžiausias greitis : %2$s</string>
   <string name="local_index_gpx_info_elevation">\nVidutinis aukštis : %1$.0f m\nMažiausias aukštis : %2$.0f m\nDidžiausias aukštis : %3$.0f m\nKopimas : %4$.0f m\nNusileidimas : %5$.0f m</string>
   <string name="local_index_gpx_info">Sudėtinai maršrutai : %1$d\nIš viso taškų : %2$d\nMaršruto taškų : %3$d\nBendras atstumas : %4$s\nPradžios laikas : %5$tF, %5$tR\nPabaigos laikas : %6$tF, %6$tR</string>
-  <string name="local_index_installed">Leidimas</string>
+  <string name="local_index_installed">Atnaujinta</string>
   <string name="local_index_items_backuped">Sėkmingai deaktyvuota(-as) %1$d iš %2$d elementų(-o).</string>
   <string name="local_index_items_deleted">Sėkmingai ištrinta(-as) %1$d iš %2$d elementų(-o).</string>
   <string name="local_index_items_restored">Sėkmingai aktyvuota(-s) %1$d iš %2$d elementų(-o).</string>
@@ -476,19 +472,19 @@
 \n\tAtnaujinimai yra žymimi spalvomis: 
 \n\t\'Žalia\' - rodo, kad jūsų žemėlapiai identiški esantiems serveryje 
 \n\t\'Mėlyna\' - rodo, kad serveryje yra atnaujinimų
-</string>
+\n\t\'Tamsiai žalia/mėlyna\' - atitinkamai deaktyvuotus įrenginio duomenis</string>
   <string name="level_to_switch_vector_raster_descr">Mažiausias dydis, kuriuo rodyti vektorinius žemėlapius</string>
   <string name="level_to_switch_vector_raster">Mažiausias vektorinių žemėl. dydis</string>
   <string name="tip_location_sharing">Vietos bendrinimas</string>
-  <string name="tip_location_sharing_t">\tJūs galite pasidalinti savo kelionės metu aplankytų įdomių objektų vietomis su savo giminėmis ir draugais. 
-\n\tNorėdami bendrinti jūsų pasirinktą vietą: 
-\n\tNaudokite \'Žemėlapio kontekstinis meniu\' -&gt; \'Bendrinti vietą\' meniu punktu. 
-\n\tPo to pasirinkite kaip nusiųsite savo pasirinktą vietą. Turėsite tokį pasirinkimą: elektroniniu paštu, SMS(tekstu), ar paprasčiausiai nukopijuoti koordinates.</string>
-  <string name="tip_favorites">Įsiminti taškai</string>
-  <string name="tip_favorites_t">\tDažnai naudojamos vietos gali būti išsaugotos kaip Įsimintos vietos. 
-\n\tNorėdami išsaugoti Įsimintą vietą atverkite žemėlapio kontekstinį meniu ir pasirinkite \'Pridėti prie įsimintų\' bei įveskite pavadinimą. Išsaugota Įsiminta vieta bus prieinama per \'Pagrindinis meniu\' -&gt; \'Įsimintos vietos\'. 
-\n\tIlgai paspaudus ant įsimintos vietos sąraše \'Įsimintos vietos\' leis tą vietą nustatyti kelionės tikslu, ją redaguoti ar ištrinti. 
-\n\tNorėdami Įsimintas vietas matyti tiesiog ant žemėlapio turite įjungti \'Įsimintos vietos\' sluoksnį atsidarę \'Žemėlapio kontekstinis meniu\' -&gt;\'Nustatyti vaizdą\'.</string>
+  <string name="tip_location_sharing_t">"Jūs galite pasidalinti savo kelionės metu aplankytų įdomių objektų vietomis su savo giminėmis ir draugais.
+\nNorėdami bendrinti jūsų pasirinktą vietą:
+\nNaudokite \'Žemėlapio kontekstinis meniu\' -&gt; \'Bendrinti vietą\' meniu punktu.
+\nPo to pasirinkite kaip nusiųsite savo pasirinktą vietą. Turėsite tokį pasirinkimą: elektroniniu paštu, SMS(tekstu), ar paprasčiausiai nukopijuoti koordinates. "</string>
+  <string name="tip_favorites">Įsimintos vietos</string>
+  <string name="tip_favorites_t">"Dažnai naudojamos vietos gali būti išsaugotos kaip Įsimintos vietos.
+\nNorėdami išsaugoti Įsimintą vietą atverkite žemėlapio kontekstinį meniu ir pasirinkite \'Pridėti prie įsimintų\' bei įveskite pavadinimą. Išsaugota Įsiminta vieta bus prieinama per \'Pagrindinis meniu\' -&gt; \'Įsimintos vietos\'.
+\nIlgai paspaudus ant įsimintos vietos sąraše \'Įsimintos vietos\' leis tą vietą nustatyti kelionės tikslu, ją redaguoti ar ištrinti.
+\nNorėdami Įsimintas vietas matyti tiesiog ant žemėlapio turite įjungti \'Įsimintos vietos\' sluoksnį atsidarę \'Žemėlapio kontekstinis meniu\' -&gt;\'Nustatyti vaizdą\'. "</string>
   <string name="create_poi_link_to_osm_doc">" <u>Online OSM</u> map classification with images"</string>
   <string name="error_doing_search">Įvyko klaida vykdant paiešką be interneto</string>
   <string name="search_offline_geo_error">Nepavyko suprasti geo poreikio \'%s\'</string>
@@ -499,22 +495,22 @@
   <string name="tip_map_switch">Žemėlapių šaltinis</string>
   <string name="tip_map_switch_t">\tGreičiausiai pakeisti žemėlapių šaltinius ir sluoksnius galima paspaudus \'Meniu\' -&gt; \'Nustatyti vaizdą\' žemėlapio rodinyje. 
 \n\tEilutėje \'Žemėlapio šaltinis…\' galite pasirinkti į įrenginį parsiųstus vektorinius žemėlapius, iš anksto nustatytus (interneto) žemėlapius, ar savarankiškai pagamintus žemėlapius (pvz., naudojant OsmAndMapCreator kompiuteryje). 
-\n\tOsmAnd taip pat palaiko ir kitokius žemėlapių šaltinius.</string>
-  <string name="tip_app_mode">Vartotojo profilis</string>
+\n\tOsmAnd taip pat palaiko ir kitokius žemėlapių šaltinius</string>
+  <string name="tip_app_mode">Naudojimo profilis</string>
   <string name="tip_app_mode_t">\tOsmAnd palaiko įvairius (konfigūruojamus) profilius skirtingiems programos panaudojimo būdams. 
-\n\tProfilį pasikeisti galima \'Meniu\' -&gt; \'Nustatymai\' -&gt; \'Vartotojo profilis\' arba kuriant maršrutą.</string>
+\n\tProfilį pasikeisti galima \'Meniu\' -&gt; \'Nustatymai\' -&gt; \'Naudojimo profilis\' arba kuriant maršrutą</string>
   <string name="tip_navigation">Navigacija</string>
   <string name="tip_navigation_t">\tPrieš pradedant navigaciją būtina pasirinkti kelionės tikslą. Vėliau žemėlapio rodinyje paspaudus \'Meniu\' -&gt; \'Maršrutas\' bus galima pasirinkti navigacijos tipą.</string>
-  <string name="tip_search">Ieškoma</string>
-  <string name="tip_search_t">\tPaiešką galima vykdyti tiesiog žemėlapyje, pagal adresą, koordinates, LV arba pasirenkant Įsimintą vietą. 
-\n\tPagrindiniame meniu paspaudus \'Paieška\' atsivers paieškos langas. Visoms rastoms vietoms kontekstinis meniu pasiūlys dvi galimybes: \'Nustatyti kelionės tikslu\' arba \'Rodyti ant žemėlapio\'.</string>
+  <string name="tip_search">Paieška</string>
+  <string name="tip_search_t">"\tPaiešką galima vykdyti tiesiog žemėlapyje, pagal adresą, koordinates, LV arba pasirenkant Įsimintą vietą.
+\n\tPagrindiniame meniu paspaudus \'Paieška\' atsivers paieškos langas. Visoms rastoms vietoms kontekstinis meniu pasiūlys dvi galimybes: \'Nustatyti kelionės tikslu\' arba \'Rodyti ant žemėlapio\'. "</string>
   <string name="tip_map_context_menu">Žemėlapio kontekstinis meniu</string>
-  <string name="tip_map_context_menu_t">\tŽemėlapio kontekstinis meniu yra pasiekiamas ant žemėlapio paspaudus ir laikant arba paspaudus valdymo rutulį. 
-\n\tTai pant žemėlapio uždės dėžutę su koordinatėmis. Norėdami atverti žemėlapio kontekstinį meniu tai dėžutei – paspauskite ant jos. (Arba paspauskite ir laikykite ją paspaudę norėdami, kad ji pradingtų.) 
-\n\tŽemėlapio kontekstiniame meniu rasite visus veiksmus, reikalingus darbui su taško vieta (koordinatėmis).</string>
+  <string name="tip_map_context_menu_t">"\tŽemėlapio kontekstinis meniu yra pasiekiamas paspaudus ir laikant ant žemėlapio arba paspaudus valdymo rutulį.
+\n\tTaip ant žemėlapio bus uždėtas taškas su koordinatėmis. Norėdami atverti žemėlapio kontekstinį meniu tam taškui – paspauskite ant jo. (Arba paspauskite ir laikykite jį paspaudę, jei norite, kad jis pradingtų.)
+\n\tŽemėlapio kontekstiniame meniu rasite visus veiksmus, reikalingus darbui su pažymėtu tašku. "</string>
   <string name="tip_initial">Patarimai ir gudrybės</string>
-  <string name="tip_initial_t">\tOsmAnd yra daug funkcijų turinti navigacijos programa. 
-\n\tPradiniam supažindinimui keletas pagrindinių patarimų būna rodomi pagrindinio meniu rodinyje.</string>
+  <string name="tip_initial_t">"\tOsmAnd yra daug funkcijų turinti navigacijos programa.
+\n\tPradiniam supažindinimui keletas pagrindinių patarimų būna rodomi pagrindinio meniu rodinyje. "</string>
   <string name="next_button">Kitas</string>
   <string name="previous_button">Ankstesnis</string>
   <string name="unit_of_length_descr">Pakeisti ilgio ir greičio matavimo vienetus</string>
@@ -566,7 +562,7 @@
   <string name="old_map_index_is_not_supported">Pasenęs žemėlapio duomenų formatas \'\'{0}\'\' nebepalaikomas</string>
   <string name="poi_filter_car_aid">Automobilių pagalba</string>
   <string name="poi_filter_closest_poi">Artimiausia LV</string>
-  <string name="poi_filter_custom_filter">Nuosavas filtras</string>
+  <string name="poi_filter_custom_filter">Individualus filtras</string>
   <string name="poi_filter_food_shop">Maisto parduotuvė</string>
   <string name="poi_filter_for_tourists">Turistams</string>
   <string name="poi_filter_fuel">Kuras</string>
@@ -626,8 +622,8 @@
   <string name="use_high_res_maps_descr">Neištempti (ir nesulieti) žemėlapio lakštų didelės raiškos ekranuose</string>
   <string name="download_files">Parsiųsti</string>
   <string name="context_menu_item_search_transport">Ieškoti transporto</string>
-  <string name="transport_searching_transport">Transporto rezultatai (ne į tikslą):</string>
-  <string name="transport_searching_route">Transporto rezultatai ({0} į tikslą):</string>
+  <string name="transport_searching_transport">Transporto rezultatai (ne iki tikslo):</string>
+  <string name="transport_searching_route">Transporto rezultatai ({0} iki tikslo):</string>
   <string name="transport_search_none">nėra</string>
   <string name="transport_search_again">Pradėti transporto paiešką iš pradžių</string>
   <string name="map_index">Žemėlapis</string>
@@ -681,7 +677,7 @@
   <string name="process_navigation_service">OsmAnd navigacijos paslauga</string>
   <string name="network_provider">Tinklas</string>
   <string name="gps_provider">GPS</string>
-  <string name="int_seconds">sekundės</string>
+  <string name="int_seconds">sek.</string>
   <string name="int_min">min.</string>
   <string name="background_service_int_descr">Nustatyti pabudimo intervalą fone  </string>
   <string name="background_service_int">Pabudimo intervalas</string>
@@ -699,7 +695,7 @@
   <string name="voice_provider">Balso komandos</string>
   <string name="voice_data_initializing">Inicializuojami balso duomenys…</string>
   <string name="voice_data_not_supported">Nepalaikoma balso duomenų versija</string>
-  <string name="voice_data_corrupted">Sugadinti specifiniai balso duomenys</string>
+  <string name="voice_data_corrupted">Burodyti balso duomenys yra sugadinti</string>
   <string name="voice_data_unavailable">Pasirinkti balso duomenys neprieinami</string>
   <string name="stop_routing">Stabdyti navig.</string>
   <string name="sd_unmounted">SD kortelė nepasiekiama.\nJūs negalėsite matyti žemėlapių ar ką nors rasti.</string>
@@ -767,7 +763,7 @@
   <string name="max_level_download_tile">Didžiausias mastelis interneto žemėlapiui</string>
   <string name="max_level_download_tile_descr">Pasirinkti didžiausią internetinio žemėlapio mastelį parsiuntimui</string>
   <string name="route_general_information">Visas atstumas %1$s, kelionės trukmė %2$d h %3$d m.</string>
-  <string name="router_service_descr">Pasirinkti navigacijos paslaugą internete arba ne</string>
+  <string name="router_service_descr">Pasirinkti navigacijos paslaugą internete arba įrenginyje</string>
   <string name="router_service">Navigacijos paslauga</string>
   <string name="sd_dir_not_accessible">Duomenų išsaugojimo segtuvas SD kortelėje nepasiekiamas</string>
   <string name="download_question">Parsiųsti {0} - {1} ?</string>
@@ -846,7 +842,7 @@
   <string name="show_osm_bugs">Rodyti OpenStreetBugs</string>
   <string name="favourites_activity">Įsimintos vietos</string>
   <string name="add_to_favourite">Pridėti prie įsimintų vietų</string>
-  <string name="use_english_names_descr">Pasirinkti originalius arba angliškus pavadinimus</string>
+  <string name="use_english_names_descr">Pasirinkti žemėlapyje rodomus pavadinimus: originalius arba angliškus</string>
   <string name="use_english_names">Žemėlapyje naudoti angliškus pavadinimus</string>
   <string name="app_settings">Programos nustatymai</string>
   <string name="search_address">Ieškoti adreso</string>
@@ -986,17 +982,19 @@
   <string name="route_updated_loc_found">Maršrutas bus perskaičiuotas, kai bus gauta dabartinė vieta</string>
   <string name="continue_follow_previous_route_auto">Paskutinis maršrutas nebuvo baigtas. Tęsti jį toliau? (%1$s sekundės)</string>
   <string name="show_cameras_descr">Rodyti greičio radarus (kai kuriose šalyse tai draudžiama)</string>
-  <string name="show_speed_limits_descr">Rodyti leistinus greičius ir greičio ribotuvus</string>
+  <string name="show_speed_limits_descr">Rodyti leistinus greičius</string>
   <string name="avoid_toll_roads_descr">Skaičiuojant maršrutą vengti mokamų kelių</string>
   <string name="show_cameras">Rodyti greičio radarus</string>
   <string name="show_speed_limits">Rodyti greičio ribojimus</string>
   <string name="avoid_toll_roads">Vengti mokamų kelių</string>
   <string name="tip_recent_changes_0_8_2_t">Pakeitimai 0.8.2 versijoje :
-    \n\t* Patobulintas maršruto sudarymas
-    \n\t* Dinaminiai žemėlapių valdikliai
-    \n\t* Ekrano užrakto mygtukas su stebėjimo servisais
-    \n\t* Žemėlapio nustatymai perkelti į žemėlapio rodinį
- </string>
+\n\t* Patobulintas maršruto sudarymas
+\n\t* Dinaminiai žemėlapių valdikliai
+\n\t* Ekrano užrakto mygtukas su stebėjimo servisais
+\n\t* Žemėlapio nustatymai perkelti į žemėlapio rodinį
+\n\t* Ekrano užrakinimo mygtukas su sekimo paslaugomis
+\n\t* Sutvarkyti arabų, kanadų skriptai ir kalbos, kuriomis rašoma iš dešinės į kairę
+</string>
   <string name="map_widget_top_text">Gatvės pavadinimas</string>
   <string name="map_widget_config">Konfigūruoti ekraną</string>
   <string name="map_widget_map_select">Žemėlapio šaltinis</string>
@@ -1004,7 +1002,7 @@
   <string name="map_widget_lock_screen">Užrakinti ekraną</string>
   <string name="map_widget_compass">Kompasas</string>
   <string name="map_widget_top_stack">Statuso juosta:</string>
-  <string name="map_widget_reset">Gražinti pradinius nustatymus</string>
+  <string name="map_widget_reset">Į pradinius nustatymus</string>
   <string name="map_widget_right_stack">Dešinė panelė:</string>
   <string name="map_widget_left_stack">Kairė panelė:</string>
   <string name="map_widget_parking">Automobilio statymas</string>
@@ -1035,7 +1033,7 @@
 <string name="avoid_in_routing_title">Vengti…</string>
 <string name="avoid_in_routing_descr">Vengti mokamų, negrįstų kelių ir keltų</string>
 <string name="show_warnings_title">Rodyti įspėjimus…</string>
-<string name="show_warnings_descr">Rodyti greičio ribojimus, greičio matuoklius ir eismo ribojimo gūbrelius</string>
+<string name="show_warnings_descr">Rodyti greičio ribojimus, matuoklius, greičio ribojimo gūbrelius ir kitus perspėjimus</string>
 <string name="map_widget_fluorescent">Fluorescenciniai maršrutai</string>
 <string name="map_widget_appearance">Įvairūs:</string>
 <string name="map_widget_view_direction">Žiūrėjimo kryptis</string>
@@ -1051,20 +1049,91 @@
 <string name="map_widget_day_night">Dieninis/naktinis žemėlapis</string>
 <string name="map_widget_vector_attributes">Atvaizduojami atributai:</string>
 <string name="map_widget_renderer">Atvaizdavimo stilius</string>
-<string name="tip_day_night_mode_t_v2">\tŽemėlapio išvaizda tam tikriems vektoriniams žemėlapiams gali būti keičiama tarp dienos (šviesesni) ir nakties (tamsesni).
-\n\tNaktinės spalvos yra saugesnės vairuoti naktį.
-\n\tDienos/nakties perjungimą galite nustatyti \'Meniu\' -&gt; \'Konfigūruoti ekraną...\' -&gt;\'Dienos/nakties žemėlapis\'.
-\n\tPasirinkimai:
-\n\t\'Saulėtekis/Saulėlydis\' - automatinis režimas, valdomas pagal saulės padėtį (numatytasis)
-\n\t\'Diena\' - visada naudoti dienos režimą
-\n\t\'Naktis\' - visada naudoti nakties režimą
-\n\t\'Šviesos jutiklis\' - žemėlapio išvaizdą valdo jūsų prietaiso šviesos jutiklis (tik jei įrengtas)</string>
-<string name="tip_app_mode_t_v2">\tOsmAnd palaiko skirtingus (keičiamus) programos profilius skirtingiems naudojimo atvejams.
-\n\tJūs galite pakeisti profilius nuspausdami profilio mygtuką apatiniame kairiajame žemėlapio ekrano kampe (automobilio, dviračio ar pėsčiojo piktogramos) arba, kai kuriate maršrutą.</string>
-<string name="tip_rotation_switching_t_v2">\tYou can toggle whether and how the map display is rotated by repeatedly clicking on the map screen\'s compass icon.↵
-\n\tPasirinkimai:↵
-\n\t\'Don\'t rotate (north is up)\' - Map will not be rotated. North will be always up↵
-\n\t\'Į judėjimo kryptį\' - Map will continuously be aligned with your heading↵
-\n\t\'Į kompasą\' - Žemėlapis bus nuolat lygiuojamas pagal prietaiso kompasą↵</string>
+<string name="tip_day_night_mode_t_v2">"Žemėlapio išvaizda tam tikriems vektoriniams žemėlapiams gali būti keičiama tarp dienos (šviesesnė) ir nakties (tamsesnė).
+\nNaktinės spalvos yra saugesnės vairuoti naktį.
+\nDienos/nakties perjungimą galite nustatyti \'Meniu\' -&gt; \'Konfigūruoti ekraną...\' -&gt;\'Dienos/nakties žemėlapis\'.
+\nPasirinkimai:
+\n\'Saulėtekis/Saulėlydis\' - automatinis režimas, valdomas pagal saulės padėtį (numatytasis)
+\n\'Diena\' - visada naudoti dienos režimą
+\n\'Naktis\' - visada naudoti nakties režimą
+\n\'Šviesos jutiklis\' - žemėlapio išvaizdą valdo jūsų prietaiso šviesos jutiklis (tik jei įrengtas) "</string>
+<string name="tip_app_mode_t_v2">"OsmAnd palaiko skirtingus (keičiamus) programos profilius skirtingiems naudojimo atvejams.
+\nJūs galite pakeisti profilius nuspausdami profilio mygtuką apatiniame kairiajame žemėlapio kampe (automobilio, dviračio ar pėsčiojo piktogramos) arba, kai kuriate maršrutą. "</string>
+<string name="tip_rotation_switching_t_v2">\tJūs galite pasirinkti ar ir kaip bus pasukamas žemėlapis paspaudus ant kompaso ikonos žemėlapio rodinyje. Turėsite tokias galimybes:
+\n\t\'Nesukti (šiaurė viršuje)\' - Žemėlapis nebus sukamas. Šiaurė visada bus viršuje
+\n\t\'Į judėjimo kryptį\' - Žemėlapis visą laiką bus pasuktas judėjimo kryptimi
+\n\t\'Į kompasą\' - Žemėlapis visą laiką bus pasuktas į kompasi rodomą kryptį (gali būti netiksli, tinka einant)
+</string>
 <string name="osmand_short_description_80_chars">OsmAnd - atviro kodo navigacijos programa su interneto/parsiųstais žemėlapius</string>
-</resources>
+<string name="avoid_motorway">Vengti greitkelių</string>
+<string name="tip_recent_changes_0_8_3_t">"Pakeitimai 0.8.3 versijoje :
+\n\t* Tarpiniai kelionės tikslai\n\t* Patobulintas kelio vedimas
+\n\t* Nustatymas vengti greitkelių planuojant maršrutą
+\n\t* Žemėlapyje įvestas naujas kelio tipas dviračiams (dviračių takas = nuvažiuoto kelio rodymas)
+\n\t* Klaidų pataisymai "</string>
+<string name="snap_to_road_descr">Poziciją rodyti ant kelių kai naviguojama</string>
+<string name="snap_to_road">Rodyti ant kelio</string>
+<string name="osmand_long_description_1000_chars">
+OsmAnd (OSM Automated Navigation Directions)
+
+OsmAnd yra atviro kodo programa naudojanti visą spektrą OpenStreetMap (OSM) duomenų. Visi žemėlapiai (vektoriniai ar lakštiniai) gali būti išsaugoti telefone ir naudojami be interneto prieigos. OsmAnd taip pat gali pasiūlyti maršruto skaičiavimo paslaugas internete ar įrenginyje, bei balso nurodymus kalionei apskaičiuotu maršrutu.
+
+Sąvybės:
+- Kompaktiški vektoriniai viso pasaulio žemėlapiai
+- Adresų ir LV paieška nenaudojant interneto
+- Automobilio, dviračio ir pėsčiojo režimai
+
+Šios nemokamos OsmAnd versijos apribojimai:
+- Ribojamas žemėlapių parsiuntimų skaičius
+- Nėra prieigos prie iš Wikipedia parsiunčiamų LV
+
+OsmAnd yra aktyviai tobulinama ir mūsų projektas bei jo tolesnis progresas priklauso nuo finansinės paramos, kuri įgalina tolesnį vystymą ir naujų funkcijų kūrimą. Norime paskatinti jus nusipirkti OsmAnd+ programą arba finansiškai prisidėti prie specifinių funkcijų kūrimo arba šiaip paremti programą osmand.net puslapyje.
+</string>
+<string name="osmand_plus_short_description_80_chars">OsmAnd - atviro kodo navigacijos programa su žemėlapiais</string>
+<string name="osmand_plus_long_description_1000_chars">" OsmAnd (OSM Automated Navigation Directions) OsmAnd yra atviro kodo programa naudojanti visą spektrą OpenStreetMap (OSM) duomenų. Visi žemėlapiai (vektoriniai ar lakštiniai) gali būti išsaugoti telefono atmintyje ar atminties kortelėje ir naudojami be interneto prieigos. OsmAnd taip pat gali pasiūlyti maršruto skaičiavimo paslaugas internete ar įrenginyje, bei balso nurodymus kelionei apskaičiuotu maršrutu. Sąvybės: - Kompaktiški vektoriniai viso pasaulio žemėlapiai - Galimybė parsisiųsti šalies ar regiono žemėlapius pačioje programoje - Galimybė sudėti kelis žemėlapių sluoksnius, pvz. GPX ar kelionės istoriją, Lankytinas, Išsaugotas vietas, kontūrų linijas, viešo transporto sustojimus, papildomus žemėlapius pasirenkant jų permatomumą - Adresų ir LV paieška nenaudojant interneto - Trumpų maršrutų skaičiavimas nenaudojant interneto (eksperimentinė funkcija) - Automobilio, dviračio ir pėsčiojo režimai "</string>
+<string name="tip_map_switch_t_v2">\tŽemėlapių šaltiniai ir rodomi sluoksniai keičiami per \'Meniu\' -&gt; \'Nustatyti vaizdą\' žemėlapio rodinyje.
+\n\tPunkte \'Žemėlapio šaltinis…\' galite pasirinkti parsiųstus vektorinius žemėlapius, priderintus interneto žemėlapių šaltinius (aktyvuokite \'Interneto žemėlapiai\' įskiepį), arba savarankiškai sukurtus žemėlapius (pvz. naudojant OsmAndMapCreator programą kompiuteriui).
+\n\tOsmAnd taip pat gali naudoti ir kitokius šaltinius.
+	</string>
+<string name="osmand_parking_event">Pasiimti automobilį iš stovėjimo vietos</string>
+  <string name="tip_recent_changes_0_8_4_t">"Pakeitimai 0.8.4 versijoje : Atnaujinta "</string>
+    <string name="context_menu_item_last_intermediate_point">Nustatyti paskutinį tarpinį tikslą</string>
+    <string name="context_menu_item_first_intermediate_point">Nustatyti pirmą tarpinį tikslą</string>
+    <string name="add_as_last_destination_point">Pridėti kaip paskutinį tarpinį tikslą</string>
+    <string name="add_as_first_destination_point">Pridėti kaip pirmą tarpinį tikslą</string>
+    <string name="replace_destination_point">Pakeisti kelionės tikslą</string>
+    <string name="new_destination_point_dialog">Jūs jau turite nustatę kelionės tikslą.</string>
+    <string name="target_point">Tikslas %1$s</string>
+    <string name="target_points">Tikslai</string>
+    <string name="intermediate_point_too_far">Tarpinis tikslas %1$s yra per toli nuo artimiausio kelio.</string>
+    <string name="arrived_at_intermediate_point">Jūs atvykote į tarpinį tikslą</string>
+    <string name="context_menu_item_intermediate_point">Pridėti tarpinį tikslą</string>
+    <string name="map_widget_intermediate_distance">Tarpinis tikslas</string>
+    <string name="ending_point_too_far">Pradžios taškas per toli nuo artimiausio kelio.</string>
+    <string name="btn_add_tag">Pridėti žymą</string>
+    <string name="btn_advanced_mode">Eksperto režimas…</string>
+    <string name="poi_filter_parking">Parkingas</string>
+    <string name="poi_filter_emergency">Nelaimės atveju</string>
+    <string name="poi_filter_public_transport">Viešasis transportas</string>
+    <string name="poi_filter_entertainment">Pramogos</string>
+    <string name="poi_filter_accomodation">Nakvynė</string>
+    <string name="poi_filter_restaurants">Restoranai</string>
+    <string name="poi_filter_sightseeing">Įžymybės</string>
+    <string name="map_widget_monitoring_services">Stebėjimo paslaugos</string>
+	<string name="no_route">Nėra maršruto</string>
+	<string name="delete_target_point">Pašalinti tikslą</string>
+	<string name="intermediate_point">Tarpinis tikslas %1$s</string>
+    <string name="map_widget_show_destination_arrow">Rodyti kryptį į kelionės tikslą</string>
+    <string name="enable_plugin_monitoring_services">Jei norite naudoti sekimo paslaugas (sekimo ir sekimo gyvai) įjunkite sekimo įskiepius</string>
+    <string name="non_optimal_route_calculation">Apskaičiuoti (tikėtinai) neoptimalų ilgo nuotolio maršrutą</string>
+    <string name="gps_not_available">Įjunkite GPS telefono nustatymuose</string>
+    <string name="rendering_attr_roadColors_description">Pasirinkti kelių spalvinimo schemą:</string>
+	<string name="rendering_attr_roadColors_name">Kelių spalvinimo schema</string>
+    <string name="zxing_barcode_scanner_not_found">Barkodų nuskaitymo programa ZXing neįdiegta. Ieškoti parduotuvėje?</string>
+	<string name="close_changeset">Uždaryti pakeitimus</string>
+	<string name="safe_mode_description">Vykdyti programą saugiu režimu (naudoti Android kodą vietoje aparatinio).</string>
+    <string name="safe_mode">Saugus režimas</string>
+    <string name="native_library_not_running">Programa veikia saugiu eržimu (išjunkite jį Nustatymuose).</string>
+    <string name="background_service_is_enabled_question">Foninis režimas vis dar veikia. Ar norite jį nutraukti?</string>
+    <string name="tip_recent_changes_1_0_0_t">"Pakeitimai 1.0 versijoje :\n\t* Patobulintas maršruto skaičiavimas dabar greitesnis ir tikslesnis (iki 250 km)\n\t* Kelių žemėlapis\n\t* Žemėlapis nepraranda pozicijos įvykus trikdžiams\n\t* Foninio režimo įjungimas navigacijos metu "</string>
+    </resources>

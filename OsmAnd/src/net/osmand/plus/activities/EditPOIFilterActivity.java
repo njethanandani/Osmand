@@ -3,7 +3,10 @@
  */
 package net.osmand.plus.activities;
 
+import java.text.Collator;
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -16,6 +19,7 @@ import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.PoiFilter;
 import net.osmand.plus.PoiFiltersHelper;
 import net.osmand.plus.R;
+import net.osmand.plus.SpecialPhrases;
 import net.osmand.plus.activities.search.SearchActivity;
 import net.osmand.plus.activities.search.SearchPOIActivity;
 import android.app.AlertDialog;
@@ -104,20 +108,33 @@ public class EditPOIFilterActivity extends OsmandListActivity {
 		});
 		
 		((ImageButton) findViewById(R.id.SaveButton)).setOnClickListener(new OnClickListener() {
-			
 			@Override
 			public void onClick(View v) {
 				savePoiFilter();
 			}
 		});
+		
+		((ImageButton) findViewById(R.id.DeleteButton)).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				removePoiFilter();
+			}
+		});
+		
+		
 
 		Bundle bundle = this.getIntent().getExtras();
 		String filterId = bundle.getString(AMENITY_FILTER);
 		
 		helper = ((OsmandApplication)getApplication()).getPoiFilters();
 		filter = helper.getFilterById(filterId);
+		if(filter.isStandardFilter()){
+			((ImageButton) findViewById(R.id.DeleteButton)).setVisibility(View.GONE);
+		} else {
+			((ImageButton) findViewById(R.id.DeleteButton)).setVisibility(View.VISIBLE);
+		}
 		titleBar.getTitleView().setText(getString(R.string.filterpoi_activity) + " - " + filter.getName());
-
+		
 		setListAdapter(new AmenityAdapter(AmenityType.getCategories()));
 	}
 
@@ -156,29 +173,34 @@ public class EditPOIFilterActivity extends OsmandListActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.edit_filter_delete) {
-			Builder builder = new AlertDialog.Builder(this);
-			builder.setMessage(R.string.edit_filter_delete_dialog_title);
-			builder.setNegativeButton(R.string.default_buttons_no, null);
-			builder.setPositiveButton(R.string.default_buttons_yes, new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					if (helper.removePoiFilter(filter)) {
-						AccessibleToast.makeText(
-								EditPOIFilterActivity.this,
-								MessageFormat.format(EditPOIFilterActivity.this.getText(R.string.edit_filter_delete_message).toString(),
-										filter.getName()), Toast.LENGTH_SHORT).show();
-						EditPOIFilterActivity.this.finish();
-					}
-
-				}
-			});
-			builder.create().show();
+			removePoiFilter();
 			return true;
 		} else if (item.getItemId() == R.id.edit_filter_save_as) {
 			savePoiFilter();
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+
+	private void removePoiFilter() {
+		Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(R.string.edit_filter_delete_dialog_title);
+		builder.setNegativeButton(R.string.default_buttons_no, null);
+		builder.setPositiveButton(R.string.default_buttons_yes, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if (helper.removePoiFilter(filter)) {
+					AccessibleToast.makeText(
+							EditPOIFilterActivity.this,
+							MessageFormat.format(EditPOIFilterActivity.this.getText(R.string.edit_filter_delete_message).toString(),
+									filter.getName()), Toast.LENGTH_SHORT).show();
+					EditPOIFilterActivity.this.finish();
+				}
+
+			}
+		});
+		builder.create().show();
 	}
 	
 	private void showDialog(final AmenityType amenity) {
@@ -197,8 +219,22 @@ public class EditPOIFilterActivity extends OsmandListActivity {
 		}
 
 		final String[] array = subCategories.toArray(new String[0]);
+		final Collator cl = Collator.getInstance();
+		cl.setStrength(Collator.SECONDARY);
+		Arrays.sort(array, 0, array.length, new Comparator<String>() {
+
+			@Override
+			public int compare(String object1, String object2) {
+				String v1 = SpecialPhrases.getSpecialPhrase(object1).replace('_', ' ');
+				String v2 = SpecialPhrases.getSpecialPhrase(object2).replace('_', ' ');
+				return cl.compare(v1, v2);
+			}
+		});
+		final String[] visibleNames = new String[array.length];
 		final boolean[] selected = new boolean[array.length];
-		for (int i = 0; i < selected.length; i++) {
+		
+		for (int i = 0; i < array.length; i++) {
+			visibleNames[i] = SpecialPhrases.getSpecialPhrase(array[i]).replace('_', ' ');			
 			if (acceptedCategories == null) {
 				selected[i] = true;
 			} else {
@@ -239,7 +275,7 @@ public class EditPOIFilterActivity extends OsmandListActivity {
 			}
 		});
 
-		builder.setMultiChoiceItems(array, selected, new DialogInterface.OnMultiChoiceClickListener() {
+		builder.setMultiChoiceItems(visibleNames, selected, new DialogInterface.OnMultiChoiceClickListener() {
 
 			@Override
 			public void onClick(DialogInterface dialog, int item, boolean isChecked) {

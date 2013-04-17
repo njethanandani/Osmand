@@ -47,8 +47,24 @@
 #	define UNORDERED_NAMESPACE std
 #	define UNORDERED_map unordered_map
 #	define UNORDERED_set unordered_set
+//#	define UNORDERED_map map
+//#	define UNORDERED_set set
 #endif
 #define UNORDERED(cls) UNORDERED_NAMESPACE::UNORDERED_##cls
+
+#if defined(ANDROID)
+#include "shared_ptr.h"
+#define SHARED_PTR my_shared_ptr
+//#   include <tr1/shared_ptr.h>
+//#   define SHARED_PTR std::tr1::shared_ptr
+#elif defined(WINDOWS)
+#else
+//#	include "shared_ptr.h"
+//#   define SHARED_PTR my_shared_ptr
+#   include <tr1/memory>
+#   define SHARED_PTR std::tr1::shared_ptr
+#endif
+
 
 // Better don't do this
 using namespace std;
@@ -162,8 +178,8 @@ public:
 	int visible;
 	int allObjects;
 	int lastRenderedKey;
-	class ElapsedTimer textRendering;
-	class ElapsedTimer nativeOperations;
+	ElapsedTimer textRendering;
+	ElapsedTimer nativeOperations;
 
 // because they used in 3rd party functions
 public :
@@ -182,6 +198,9 @@ public :
 	// not expect any shadow
 	int shadowLevelMin;
 	int shadowLevelMax;
+	int polygonMinSizeToDisplay;
+	int roadDensityZoomTile;
+	int roadsDensityLimitPerTile;
 
 public:
 	RenderingContext() : shadowLevelMax(0), shadowLevelMin(256), density(true), useEnglishNames(false), pointCount(0),
@@ -189,6 +208,9 @@ public:
 		setRotate(0);
 		setZoom(15);
 		setDefaultColor(0xfff1eee8);
+		roadsDensityLimitPerTile = 0;
+		roadDensityZoomTile = 0;
+		polygonMinSizeToDisplay = 0;
 	}
 	virtual ~RenderingContext();
 
@@ -294,6 +316,8 @@ void purgeCachedBitmaps();
 int get31TileNumberX(double longitude);
 int get31TileNumberY( double latitude);
 
+double getPowZoom(float zoom);
+
 double getLongitudeFromTile(float zoom, double x) ;
 double getLatitudeFromTile(float zoom, double y);
 
@@ -301,7 +325,14 @@ double get31LongitudeX(int tileX);
 double get31LatitudeY(int tileY);
 double getTileNumberX(float zoom, double longitude);
 double getTileNumberY(float zoom, double latitude);
-
+double getDistance(double lat1, double lon1, double lat2, double lon2);
 double getPowZoom(float zoom);
+
+double calculateProjection31TileMetric(int xA, int yA, int xB, int yB, int xC, int yC);
+double squareDist31TileMetric(int x1, int y1, int x2, int y2) ;
+double convert31YToMeters(int y1, int y2);
+double convert31XToMeters(int y1, int y2);
+double alignAngleDifference(double diff);
+
 
 #endif /*_OSMAND_COMMON_H*/

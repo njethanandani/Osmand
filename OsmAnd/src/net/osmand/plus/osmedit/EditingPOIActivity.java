@@ -2,11 +2,11 @@ package net.osmand.plus.osmedit;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import net.osmand.OsmAndFormatter;
 import net.osmand.access.AccessibleToast;
@@ -44,7 +44,9 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -54,6 +56,7 @@ public class EditingPOIActivity implements DialogProvider {
 	
 	private final MapActivity ctx;
 	private final OpenstreetmapUtil openstreetmapUtil;
+	private final OpenstreetmapUtil openstreetmapUtilToLoad;
 	private AutoCompleteTextView typeText;
 	private EditText nameText;
 	private Button typeButton;
@@ -62,6 +65,7 @@ public class EditingPOIActivity implements DialogProvider {
 	private EditText commentText;
 	private EditText websiteText;
 	private EditText phoneText;
+	private CheckBox closeChange;
 
 //	private final static Log log = LogUtil.getLog(EditingPOIActivity.class);
 
@@ -78,20 +82,27 @@ public class EditingPOIActivity implements DialogProvider {
 
 	private Bundle dialogBundle = new Bundle();
 	private OsmandSettings settings;
+	
 
 	public EditingPOIActivity(MapActivity uiContext){
 		this.ctx = uiContext;
 
 		settings = ((OsmandApplication) uiContext.getApplication()).getSettings();
-		if(settings.OFFLINE_EDITION.get() || !settings.isInternetConnectionAvailable(true)){
+		if (settings.OFFLINE_EDITION.get() || !settings.isInternetConnectionAvailable(true)) {
 			this.openstreetmapUtil = new OpenstreetmapLocalUtil(ctx);
+			if (settings.isInternetConnectionAvailable(true)) {
+				this.openstreetmapUtilToLoad = new OpenstreetmapRemoteUtil(ctx, ctx.getMapView());
+			} else {
+				this.openstreetmapUtilToLoad = openstreetmapUtil;
+			}
 		} else {
 			this.openstreetmapUtil = new OpenstreetmapRemoteUtil(ctx, ctx.getMapView());
+			this.openstreetmapUtilToLoad= openstreetmapUtil;
 		}
 	}
 	
 	public void showEditDialog(Amenity editA){
-		Node n = openstreetmapUtil.loadNode(editA);
+		Node n = openstreetmapUtilToLoad.loadNode(editA);
 		if(n != null){
 			showPOIDialog(DIALOG_EDIT_POI, n, editA.getType(), editA.getSubType());
 		} else {
@@ -132,16 +143,23 @@ public class EditingPOIActivity implements DialogProvider {
 	private Dialog createDeleteDialog(final Bundle args) {
 		Builder builder = new AlertDialog.Builder(ctx);
 		builder.setTitle(R.string.poi_remove_title);
+		LinearLayout ll = new LinearLayout(ctx);
+		ll.setPadding(4, 2, 4, 0);
+		ll.setOrientation(LinearLayout.VERTICAL);
 		final EditText comment = new EditText(ctx);
 		comment.setText(R.string.poi_remove_title);
-		builder.setView(comment);
+		ll.addView(comment);
+		final CheckBox closeChangeset = new CheckBox(ctx);
+		closeChangeset.setText(R.string.close_changeset);
+		ll.addView(closeChangeset);
+		builder.setView(ll);
 		builder.setNegativeButton(R.string.default_buttons_cancel, null);
 		builder.setPositiveButton(R.string.default_buttons_delete, new DialogInterface.OnClickListener(){
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				Node n = (Node) args.getSerializable(KEY_AMENITY_NODE);
 				String c = comment.getText().toString();
-				commitNode(OsmPoint.Action.DELETE, n, openstreetmapUtil.getEntityInfo(), c, new Runnable(){
+				commitNode(OsmPoint.Action.DELETE, n, openstreetmapUtil.getEntityInfo(), c, closeChangeset.isSelected(),  new Runnable(){
 					@Override
 					public void run() {
 						AccessibleToast.makeText(ctx, ctx.getResources().getString(R.string.poi_remove_success), Toast.LENGTH_LONG).show();
@@ -157,6 +175,9 @@ public class EditingPOIActivity implements DialogProvider {
 
 	private void preparePOIDialog(Dialog dlg, Bundle args, int title) {
 		Amenity a = (Amenity) args.getSerializable(KEY_AMENITY);
+		if(a == null){
+			a = new Amenity(); 
+		}
 		dlg.setTitle(title);
 		EditText nameText = ((EditText)dlg.findViewById(R.id.Name));
 		nameText.setText(a.getName());
@@ -166,11 +187,109 @@ public class EditingPOIActivity implements DialogProvider {
 		phoneText.setText(a.getPhone());
 		EditText websiteText = ((EditText)dlg.findViewById(R.id.Website));
 		websiteText.setText(a.getSite());
+		final TableLayout layout = ((TableLayout)dlg.findViewById(R.id.advancedModeTable));
+		layout.setVisibility(View.GONE);
 		updateType(a);
 	}
 	
-	private Dialog createPOIDialog(final int dialogID, final Bundle args) {
+	private void addTagValueRow(final Node n, final TableLayout layout, String tg, String vl) {
+		final TableRow newTagRow = new TableRow(ctx);				            
+        TableRow.LayoutParams tlp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);          
+        tlp.leftMargin = 5;
+        newTagRow.setLayoutParams(tlp);
+
+        final AutoCompleteTextView tag = new AutoCompleteTextView(ctx);
+        final AutoCompleteTextView value = new AutoCompleteTextView(ctx);				            
+        final Button delete = new Button(ctx);
+        
+        tag.setLayoutParams(tlp);
+        if(tg != null) {
+        	tag.setText(tg);
+        } else {
+        	tag.setHint("Tag");
+        }
+
+        final Set<String> tagKeys = new TreeSet<String>();
+		for (OSMTagKey t : OSMTagKey.values()) {
+			if ((t != OSMTagKey.NAME) && (t != OSMTagKey.OPENING_HOURS) && (t != OSMTagKey.PHONE)
+					&& (t != OSMTagKey.WEBSITE)) {
+				tagKeys.add(t.getValue());
+			}
+		}
+		ArrayAdapter<Object> adapter = new ArrayAdapter<Object>(ctx, R.layout.list_textview, tagKeys.toArray());
+        tag.setAdapter(adapter);
+        tag.setThreshold(1);
+        tag.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Builder builder = new AlertDialog.Builder(ctx);
+				final String[] tags = tagKeys.toArray(new String[tagKeys.size()]);
+				builder.setItems(tags, new Dialog.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						tag.setText(tags[which]);
+					}
+					
+				});		
+				builder.create();
+				builder.show();
+			}
+		});			            
+        tlp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.FILL_PARENT);
+        tlp.leftMargin = 5;
+        tlp.rightMargin = 5;
+        tlp.width = 80;
+        value.setLayoutParams(tlp);
+        if(vl != null) {
+        	value.setText(vl);
+        } else {
+        	value.setHint("Value");
+        }
+        Set<String> subCategories = MapRenderingTypes.getDefault().getAmenityNameToType().keySet();
+        ArrayAdapter<Object> valueAdapter = new ArrayAdapter<Object>(ctx, R.layout.list_textview, subCategories.toArray());
+        value.setThreshold(1);
+        value.setAdapter(valueAdapter);
+		value.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void afterTextChanged(Editable s) {
+				if ((newTagRow != null) && (tag != null) && (value != null) && (tag.getText() != null)
+						&& (value.getText() != null) && (!tag.getText().equals("")) && (!value.getText().equals(""))) {
+					n.putTag(tag.getText().toString(), value.getText().toString());
+				}
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+			}
+
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+			}
+		});
+        tlp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+        tlp.gravity = Gravity.CENTER;
+        tlp.rightMargin = 5;
+        delete.setLayoutParams(tlp);
+        delete.setText("X");
+        delete.setOnClickListener(new View.OnClickListener() {
+        	@Override
+        	public void onClick(View v) {
+        		layout.removeView(newTagRow);
+        		layout.invalidate();
+        		n.removeTag(tag.getText().toString());
+        	}
+        });      
+        newTagRow.addView(tag);
+        newTagRow.addView(value);
+        newTagRow.addView(delete);			            
+        layout.addView(newTagRow);
+        layout.invalidate();
+	}
+	
+	private Dialog createPOIDialog(final int dialogID, Bundle args) {
 		final Dialog dlg = new Dialog(ctx);
+		final Amenity a = (Amenity) args.getSerializable(KEY_AMENITY);
+		final Node n = (Node) args.getSerializable(KEY_AMENITY_NODE);
 		dlg.setContentView(R.layout.editing_poi);
 		nameText = ((EditText)dlg.findViewById(R.id.Name));
 		openingHours = ((EditText)dlg.findViewById(R.id.OpeningHours));
@@ -182,7 +301,7 @@ public class EditingPOIActivity implements DialogProvider {
 		commentText = ((EditText)dlg.findViewById(R.id.Comment));
 		phoneText = ((EditText)dlg.findViewById(R.id.Phone));
 		websiteText = ((EditText)dlg.findViewById(R.id.Website));
-		
+		closeChange = ((CheckBox) dlg.findViewById(R.id.CloseChangeset));
 		
 		TextView linkToOsmDoc = (TextView) dlg.findViewById(R.id.LinkToOsmDoc);
 		linkToOsmDoc.setOnClickListener(new View.OnClickListener() {
@@ -199,13 +318,13 @@ public class EditingPOIActivity implements DialogProvider {
 		typeText.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				showSubCategory(args);
+				showSubCategory(a);
 			}
 		});
 		typeText.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View v) {
-				showSubCategory(args);
+				showSubCategory(a);
 				return true;
 			}
 		});
@@ -219,7 +338,6 @@ public class EditingPOIActivity implements DialogProvider {
 
 			@Override
 			public void afterTextChanged(Editable s) {
-				Amenity a = (Amenity) args.getSerializable(KEY_AMENITY);
 				String str = s.toString();
 				a.setSubType(str);
 				AmenityType t = MapRenderingTypes.getDefault().getAmenityNameToType().get(str);
@@ -248,112 +366,37 @@ public class EditingPOIActivity implements DialogProvider {
 		});
 		
 		final Button advancedModeButton = ((Button)dlg.findViewById(R.id.advancedMode));
-		final Map<String, String> additionalTags = new HashMap<String, String>();
 		advancedModeButton.setOnClickListener(new View.OnClickListener() {	
 			@Override
 			public void onClick(View v) {
-				final TableLayout layout = ((TableLayout)dlg.findViewById(R.id.advancedModeTable));	
-				TableLayout.LayoutParams tlParams = new TableLayout.LayoutParams(TableLayout.LayoutParams.FILL_PARENT, TableLayout.LayoutParams.WRAP_CONTENT);          
-	            layout.setLayoutParams(tlParams);
-	            layout.setColumnStretchable(1, true);
+				final TableLayout layout = ((TableLayout) dlg.findViewById(R.id.advancedModeTable));
+				TableLayout.LayoutParams tlParams = new TableLayout.LayoutParams(TableLayout.LayoutParams.FILL_PARENT,
+						TableLayout.LayoutParams.WRAP_CONTENT);
+				layout.setLayoutParams(tlParams);
+				layout.setColumnStretchable(1, true);
 				layout.setVisibility((layout.getVisibility() == View.VISIBLE) ? View.GONE : View.VISIBLE);
-
+				Button addTag = (Button) dlg.findViewById(R.id.addTag);
+				addTag.setVisibility((layout.getVisibility() == View.VISIBLE) ? View.VISIBLE : View.GONE);
 				if (layout.getVisibility() == View.VISIBLE) {
-					Button addTag = (Button) dlg.findViewById(R.id.addTag);
-					addTag.setVisibility((layout.getVisibility() == View.VISIBLE) ? View.GONE : View.VISIBLE);
 					addTag.setOnClickListener(new View.OnClickListener() {
 						@Override
 						public void onClick(View v) {
-				            final TableRow newTagRow = new TableRow(ctx);				            
-				            TableRow.LayoutParams tlp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);          
-				            tlp.leftMargin = 5;
-				            newTagRow.setLayoutParams(tlp);
-
-				            final Button tag = new Button(ctx);
-				            final EditText value = new EditText(ctx);				            
-				            final Button delete = new Button(ctx);
-				            
-				            tag.setLayoutParams(tlp);
-				            tag.setText("<Tag>");
-				            tag.setOnClickListener(new View.OnClickListener() {
-				    			@Override
-				    			public void onClick(View v) {
-//				    				Comment: To exclude basic tags OSMTagKey.NAME, OSMTagKey.OPENING_HOURS, OSMTagKey.PHONE, OSMTagKey.WEBSITE;
-				    				final OSMTagKey[] allValues = OSMTagKey.values();
-				    				final OSMTagKey[] values = new OSMTagKey[allValues.length-4];
-				    				int j = 0;
-				    				for (int i = 0; i < allValues.length; i++) {
-				    					if (	(allValues[i] != OSMTagKey.NAME) && 
-				    							(allValues[i] != OSMTagKey.OPENING_HOURS) && 
-				    							(allValues[i] != OSMTagKey.PHONE) && 
-				    							(allValues[i] != OSMTagKey.WEBSITE)		) {
-				    						values[j] = allValues[i];
-				    						j++;
-				    					}
-				    				}
-				    				final String[] vals = new String[values.length];
-				    				for (int i=0; i<values.length; i++) {
-				    					vals[i] = values[i].getValue(); 
-				    				}		
-				    				Builder builder = new AlertDialog.Builder(ctx);
-				    				builder.setItems(vals, new Dialog.OnClickListener() {
-				    					@Override
-				    					public void onClick(DialogInterface dialog, int which) {
-				    						tag.setText(vals[which]);
-				    						tag.invalidate();
-				    					}
-				    					
-				    				});		
-				    				builder.create();
-				    				builder.show();
-				    			}
-				    		});			            
-				            tlp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.FILL_PARENT);
-				            tlp.leftMargin = 5;
-				            tlp.rightMargin = 5;
-				            tlp.width = 80;
-				            value.setLayoutParams(tlp);
-				            value.setHint("Value");
-				            value.addTextChangedListener(new TextWatcher() {
-				    			@Override
-				    			public void afterTextChanged(Editable s) {
-				    				if ((newTagRow != null) 
-											&& (tag != null) && (value != null) 
-											&& (tag.getText() != null) && (value.getText() != null)
-											&& (!tag.getText().equals("")) && (!value.getText().equals(""))) {
-				    					System.out.println(tag.getText());
-										additionalTags.put(tag.getText().toString(), value.getText().toString());
-									}
-				    			}
-
-				    			@Override
-				    			public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-				    			@Override
-				    			public void onTextChanged(CharSequence s, int start, int before, int count) {}
-				    		});
-				            tlp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
-				            tlp.gravity = Gravity.CENTER;
-				            tlp.rightMargin = 5;
-				            delete.setLayoutParams(tlp);
-				            delete.setText("X");
-				            delete.setOnClickListener(new View.OnClickListener() {
-				            	@Override
-				            	public void onClick(View v) {
-				            		layout.removeView(newTagRow);
-				            		layout.invalidate();
-				            		additionalTags.remove(tag.getText().toString());
-				            	}
-				            });      
-				            newTagRow.addView(tag);
-				            newTagRow.addView(value);
-				            newTagRow.addView(delete);			            
-				            layout.addView(newTagRow);
-				            layout.invalidate();
+							addTagValueRow(n, layout, null, null);
 						}
 					});
 				}
-				v.invalidate();
+				while (layout.getChildCount() > 0) {
+					layout.removeViewAt(0);
+				}
+				layout.requestLayout();
+				for (String tg : n.getTagKeySet()) {
+					if (!tg.equals(OSMTagKey.NAME.getValue()) && !tg.equals(OSMTagKey.OPENING_HOURS.getValue())
+							&& !tg.equals(OSMTagKey.PHONE.getValue()) && !tg.equals(OSMTagKey.WEBSITE.getValue())) {
+						if(a == null || a.getType() == null || !a.getType().getDefaultTag().equals(tg)) {
+							addTagValueRow(n, layout, tg, n.getTag(tg));
+						}
+					}
+				}
 			}
 		});
 		
@@ -367,8 +410,6 @@ public class EditingPOIActivity implements DialogProvider {
 		((Button)dlg.findViewById(R.id.Commit)).setOnClickListener(new View.OnClickListener(){
 			@Override
 			public void onClick(View v) {
-				final Amenity a = (Amenity) args.getSerializable(KEY_AMENITY);
-				final Node n = (Node) args.getSerializable(KEY_AMENITY_NODE);
 				Resources resources = v.getResources();
 				final String msg = n.getId() == -1 ? resources.getString(R.string.poi_action_add) : resources
 						.getString(R.string.poi_action_change);
@@ -411,12 +452,8 @@ public class EditingPOIActivity implements DialogProvider {
 				if (phone.length() > 0 ){
 					n.putTag(OSMTagKey.PHONE.getValue(),phone);
 				}
-				if ((additionalTags != null) && (!additionalTags.isEmpty())) {
-					for (String tk : additionalTags.keySet()) {
-						n.putTag(tk, additionalTags.get(tk));
-					}
-				}
-				commitNode(action, n, openstreetmapUtil.getEntityInfo(), commentText.getText().toString(), new Runnable() {
+				commitNode(action, n, openstreetmapUtil.getEntityInfo(), commentText.getText().toString(), closeChange.isSelected(), 
+						new Runnable() {
 					@Override
 					public void run() {
 						AccessibleToast.makeText(ctx, MessageFormat.format(ctx.getResources().getString(R.string.poi_action_succeded_template), msg),
@@ -433,8 +470,7 @@ public class EditingPOIActivity implements DialogProvider {
 		return dlg;
 	}
 
-	private void showSubCategory(final Bundle args) {
-		final Amenity a = (Amenity) args.getSerializable(KEY_AMENITY);
+	private void showSubCategory(Amenity a) {
 		if(typeText.getText().length() == 0 && a.getType() != null){
 			ctx.showDialog(DIALOG_SUB_CATEGORIES);
 		}
@@ -500,7 +536,9 @@ public class EditingPOIActivity implements DialogProvider {
 	}
 	
 	
-	public void commitNode(final OsmPoint.Action action, final Node n, final EntityInfo info, final String comment, final Runnable successAction) {
+	public void commitNode(final OsmPoint.Action action, final Node n, final EntityInfo info, final String comment,
+			final boolean closeChangeSet,
+			final Runnable successAction) {
 		if (info == null && OsmPoint.Action.CREATE != action) {
 			AccessibleToast.makeText(ctx, ctx.getResources().getString(R.string.poi_error_info_not_loaded), Toast.LENGTH_LONG).show();
 			return;
@@ -515,7 +553,7 @@ public class EditingPOIActivity implements DialogProvider {
 			@Override
 			protected Node doInBackground(Void... params) {
 				Node node = null;
-				if ((node = openstreetmapUtil.commitNodeImpl(action, n, info, comment)) != null) {
+				if ((node = openstreetmapUtil.commitNodeImpl(action, n, info, comment, closeChangeSet)) != null) {
 					openstreetmapUtil.updateNodeInIndexes(ctx, action, node, n);
 				}
 				return node;

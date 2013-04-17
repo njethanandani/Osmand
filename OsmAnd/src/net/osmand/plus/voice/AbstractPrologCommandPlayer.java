@@ -32,8 +32,7 @@ import android.content.Context;
 
 public abstract class AbstractPrologCommandPlayer implements CommandPlayer {
 
-	private static final Log log = LogUtil
-			.getLog(AbstractPrologCommandPlayer.class);
+	private static final Log log = LogUtil.getLog(AbstractPrologCommandPlayer.class);
 
 	protected Context ctx;
 	protected File voiceDir;
@@ -51,10 +50,14 @@ public abstract class AbstractPrologCommandPlayer implements CommandPlayer {
 	protected static final String DELAY_CONST = "delay_";
 	/** Must be sorted array! */
 	private final int[] sortedVoiceVersions;
+	private AudioFocusHelper mAudioFocusHelper;
+
+	protected int streamType;
 
 	protected AbstractPrologCommandPlayer(Context ctx, OsmandSettings settings, String voiceProvider, String configFile, int[] sortedVoiceVersions)
 		throws CommandPlayerException 
 	{
+		this.ctx = ctx;
 		this.sortedVoiceVersions = sortedVoiceVersions;
 		long time = System.currentTimeMillis();
 		try {
@@ -67,6 +70,7 @@ public abstract class AbstractPrologCommandPlayer implements CommandPlayer {
 		if (log.isInfoEnabled()) {
 			log.info("Initializing prolog system : " + (System.currentTimeMillis() - time)); //$NON-NLS-1$
 		}
+		this.streamType = settings.AUDIO_STREAM_GUIDANCE.get();  
 		init(voiceProvider, settings, configFile);
 	}
 	
@@ -189,4 +193,40 @@ public abstract class AbstractPrologCommandPlayer implements CommandPlayer {
 		prologSystem = null;
 	}
 
+	@Override
+	public void updateAudioStream(int streamType) {
+		this.streamType = streamType;
+	}
+	
+	protected void requestAudioFocus() {
+		log.debug("requestAudioFocus");
+		if (android.os.Build.VERSION.SDK_INT >= 8) {
+			try {
+				mAudioFocusHelper = (AudioFocusHelper) Class.forName("net.osmand.plus.voice.AudioFocusHelperImpl").newInstance();
+			} catch (Exception e) {
+				log.error(e.getMessage(), e);
+			}
+		}
+		if (mAudioFocusHelper != null) {
+			mAudioFocusHelper.requestFocus(ctx, streamType);
+		}
+	}
+	
+	protected void abandonAudioFocus() {
+		log.debug("abandonAudioFocus");
+		if (mAudioFocusHelper != null) {
+			mAudioFocusHelper.abandonFocus(ctx, streamType);
+			mAudioFocusHelper = null;
+		}
+	}
+	
+	
+	public interface AudioFocusHelper {
+		
+		public boolean requestFocus(Context context, int streamType);
+		
+		public boolean abandonFocus(Context context, int streamType);
+	}
+
+	
 }

@@ -3,7 +3,6 @@
 #include <SkPath.h>
 #include <SkBitmap.h>
 #include <SkImageDecoder.h>
-
 #include "osmand_log.h"
 
 #if defined(_WIN32)
@@ -14,6 +13,7 @@
 #else
 #	include <time.h>
 #endif
+
 
 TextDrawInfo::TextDrawInfo(std::string itext)
 	: text(itext)
@@ -79,7 +79,7 @@ void ElapsedTimer::start()
 #elif defined(__APPLE__)
 		startInit = mach_absolute_time();
 #else
-		clock_gettime(CLOCK_MONOTONIC, &startInit);
+		clock_gettime(CLOCK_REALTIME, &startInit);
 #endif
 	}
 	run = true;
@@ -91,7 +91,7 @@ void ElapsedTimer::pause()
 		return;
 #if defined(_WIN32)
 	endInit = timeGetTime();
-	elapsedTime += (endInit - startInit) * 1e6;
+	elapsedTime += (endInit - startInit) * 1000;
 #elif defined(__APPLE__)
 	endInit = mach_absolute_time();
 	uint64_t duration = endInit - startInit;
@@ -99,11 +99,11 @@ void ElapsedTimer::pause()
 	duration /= machTimeInfo.denom;
 	elapsedTime += duration;
 #else
-	clock_gettime(CLOCK_MONOTONIC, &endInit);
+	clock_gettime(CLOCK_REALTIME, &endInit);
 	int sec = endInit.tv_sec - startInit.tv_sec;
 	if (sec > 0)
-		elapsedTime += 1e9 * sec;
-	elapsedTime += endInit.tv_nsec - startInit.tv_nsec;
+		elapsedTime += 1000000 * sec;
+	elapsedTime += (endInit.tv_nsec - startInit.tv_nsec) / 1000;
 #endif
 	run = false;
 }
@@ -111,7 +111,7 @@ void ElapsedTimer::pause()
 int ElapsedTimer::getElapsedTime()
 {
 	pause();
-	return elapsedTime / 1e6;
+	return elapsedTime / 1000;
 }
 
 SkBitmap* RenderingContext::getCachedBitmap(const std::string& bitmapResource) {
@@ -172,12 +172,35 @@ std::string RenderingContext::getReshapedString(const std::string& src) {
 }
 
 
-inline double getPowZoom(float zoom){
+double getPowZoom(float zoom){
 	if(zoom >= 0 && zoom - floor(zoom) < 0.05f){
 		return 1 << ((int)zoom);
 	} else {
 		return pow(2, zoom);
 	}
+}
+
+double convert31YToMeters(int y1, int y2) {
+	// translate into meters
+	return (y1 - y2) * 0.01863f;
+}
+
+double convert31XToMeters(int x1, int x2) {
+	// translate into meters
+	return (x1 - x2) * 0.011f;
+}
+
+
+double calculateProjection31TileMetric(int xA, int yA, int xB, int yB, int xC, int yC) {
+	// Scalar multiplication between (AB, AC)
+	double multiple = convert31XToMeters(xB, xA) * convert31XToMeters(xC, xA) + convert31YToMeters(yB, yA) * convert31YToMeters(yC, yA);
+	return multiple;
+}
+double squareDist31TileMetric(int x1, int y1, int x2, int y2) {
+// translate into meters
+	double dy = convert31YToMeters(y1, y2);
+	double dx = convert31XToMeters(x1, x2);
+	return dx * dx + dy * dy;
 }
 
 
@@ -268,4 +291,23 @@ double getTileNumberY(float zoom, double latitude) {
 	return result;
 }
 
+double getDistance(double lat1, double lon1, double lat2, double lon2) {
+	double R = 6371; // km
+	double dLat = toRadians(lat2 - lat1);
+	double dLon = toRadians(lon2 - lon1);
+	double a = sin(dLat / 2) * sin(dLat / 2)
+			+ cos(toRadians(lat1)) * cos(toRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
+	double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+	return R * c * 1000;
+}
 
+double alignAngleDifference(double diff) {
+	while (diff > M_PI) {
+		diff -= 2 * M_PI;
+	}
+	while (diff <= -M_PI) {
+		diff += 2 * M_PI;
+	}
+	return diff;
+
+}

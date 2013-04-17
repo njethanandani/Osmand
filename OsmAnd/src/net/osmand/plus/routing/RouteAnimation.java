@@ -11,10 +11,8 @@ import net.osmand.plus.activities.MapActivity;
 import net.osmand.plus.routing.RouteProvider.GPXRouteParams;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.location.Location;
-import android.location.LocationManager;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -29,7 +27,6 @@ public class RouteAnimation {
 
 	public void startStopRouteAnimation(final RoutingHelper routingHelper,
 			final MapActivity ma) {
-		final LocationManager mgr = (LocationManager) ma.getSystemService(Context.LOCATION_SERVICE);
 		if (!isRouteAnimating()) {
 			Builder builder = new AlertDialog.Builder(ma);
 			builder.setTitle("Do you want to use existing GPX file?");
@@ -48,7 +45,7 @@ public class RouteAnimation {
 						@Override
 						public boolean processResult(GPXUtilities.GPXFile result) {
 							GPXRouteParams prms = new RouteProvider.GPXRouteParams(result, false, ((OsmandApplication) ma.getApplication()).getSettings());
-							mgr.removeUpdates(ma.getGpsListener());
+							ma.stopLocationRequests();
 							startAnimationThread(routingHelper, ma, prms.points, true, speedup.getProgress() + 1);
 							return true;
 						}
@@ -60,16 +57,15 @@ public class RouteAnimation {
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					mgr.removeUpdates(ma.getGpsListener());
+					ma.stopLocationRequests();
 					startAnimationThread(routingHelper, ma, new ArrayList<Location>(routingHelper.getCurrentRoute()), false, 1);
 					
 				}
 			});
 			builder.show();
 		} else {
-			mgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, ma.getGpsListener());
-			// stop the animation
 			stop();
+			ma.startLocationRequests();
 		}
 	}
 
@@ -142,12 +138,6 @@ public class RouteAnimation {
 		routeAnimation = null;
 	}
 
-	public void close() {
-		if (isRouteAnimating()) {
-			stop();
-		}
-	}
-	
 	public static Location middleLocation(Location start, Location end,
 			float meters) {
 		double lat1 = toRad(start.getLatitude());

@@ -78,21 +78,19 @@ public class ParkingPositionPlugin extends OsmandPlugin {
 
 	@Override
 	public void registerLayers(MapActivity activity) {
-		if(parkingLayer == null) {
-			parkingLayer = new ParkingPositionLayer(activity);
-			activity.getMapView() .addLayer(parkingLayer, 5);
+		// remove old if existing after turn
+		if(parkingLayer != null) {
+			activity.getMapView().removeLayer(parkingLayer);
 		}
+		parkingLayer = new ParkingPositionLayer(activity);
+		activity.getMapView().addLayer(parkingLayer, 4.5f);
 		registerWidget(activity);
 	}
 
 	@Override
 	public void updateLayers(OsmandMapTileView mapView, MapActivity activity) {
-		if ((settings.getParkingPosition() == null) && (mapView.getLayers().contains(parkingLayer))) {
-			mapView.removeLayer(parkingLayer);
-		} else {
-			if (parkingLayer == null) {
-				registerLayers(activity);
-			}
+		if (parkingLayer == null) {
+			registerLayers(activity);
 		}
 		if (parkingPlaceControl == null) {
 			registerWidget(activity);
@@ -104,7 +102,7 @@ public class ParkingPositionPlugin extends OsmandPlugin {
 		if (mapInfoLayer != null) {
 			parkingPlaceControl = createParkingPlaceInfoControl(activity, mapInfoLayer.getPaintText(), mapInfoLayer.getPaintSubText());
 			mapInfoLayer.getMapInfoControls().registerSideWidget(parkingPlaceControl,
-					R.drawable.list_activities_poi_parking, R.string.map_widget_parking, "parking", false,
+					R.drawable.widget_parking, R.string.map_widget_parking, "parking", false,
 					EnumSet.allOf(ApplicationMode.class), EnumSet.noneOf(ApplicationMode.class), 8);
 			mapInfoLayer.recreateControls();
 		}
@@ -203,6 +201,9 @@ public class ParkingPositionPlugin extends OsmandPlugin {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				showDeleteEventWarning(mapActivity);
+				if(parkingLayer != null) {
+					parkingLayer.removeParkingPoint();
+				}
 				settings.clearParkingPosition();
 				mapActivity.getMapView().refreshMap();
 			}
@@ -328,8 +329,8 @@ public class ParkingPositionPlugin extends OsmandPlugin {
 		settings.setParkingPosition(latitude, longitude);
 		settings.setParkingType(isLimited);
 		settings.setParkingStartTime(Calendar.getInstance().getTimeInMillis());
-		if (mapActivity.getMapView().getLayers().contains(parkingLayer)) {
-			parkingLayer.setParkingPointOnLayer(settings.getParkingPosition());
+		if (parkingLayer != null) {
+			parkingLayer.setParkingPointOnLayer(new LatLon(latitude, longitude), isLimited);
 		}
 	}
 	
@@ -409,7 +410,7 @@ public class ParkingPositionPlugin extends OsmandPlugin {
 			 * @return
 			 */
 			private boolean distChanged(int oldDist, int dist){
-				if(oldDist != 0 && oldDist - dist < 100 && Math.abs(((float) dist - oldDist)/oldDist) < 0.01){
+				if(oldDist != 0 && Math.abs(oldDist - dist) < 30){
 					return false;
 				}
 				return true;

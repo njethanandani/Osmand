@@ -13,8 +13,14 @@ import java.util.Comparator;
 import java.util.List;
 
 import net.osmand.LogUtil;
+import net.osmand.ResultMatcher;
 import net.osmand.binary.BinaryMapIndexReader.SearchRequest;
 import net.osmand.binary.OsmandOdb.IdTable;
+import net.osmand.binary.OsmandOdb.OsmAndRoutingIndex.RouteBorderBox;
+import net.osmand.binary.OsmandOdb.OsmAndRoutingIndex.RouteBorderLine;
+import net.osmand.binary.OsmandOdb.OsmAndRoutingIndex.RouteBorderLine.Builder;
+import net.osmand.binary.OsmandOdb.OsmAndRoutingIndex.RouteBorderPoint;
+import net.osmand.binary.OsmandOdb.OsmAndRoutingIndex.RouteBorderPointsBlock;
 import net.osmand.binary.OsmandOdb.OsmAndRoutingIndex.RouteDataBlock;
 import net.osmand.binary.OsmandOdb.OsmAndRoutingIndex.RouteDataBox;
 import net.osmand.binary.OsmandOdb.OsmAndRoutingIndex.RouteEncodingRule;
@@ -25,6 +31,7 @@ import net.osmand.osm.MapUtils;
 import org.apache.commons.logging.Log;
 
 import com.google.protobuf.CodedInputStreamRAF;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.WireFormat;
 
 public class BinaryMapRouteReaderAdapter {
@@ -154,10 +161,16 @@ public class BinaryMapRouteReaderAdapter {
 	}
 	
 	public static class RouteRegion extends BinaryIndexPart {
-		int regionsRead;
+		public int regionsRead;
+		public int borderBoxPointer = 0;
+		public int baseBorderBoxPointer = 0;
+		public int borderBoxLength = 0;
+		public int baseBorderBoxLength = 0;
 		
 		List<RouteSubregion> subregions = new ArrayList<RouteSubregion>();
+		List<RouteSubregion> basesubregions = new ArrayList<RouteSubregion>();
 		List<RouteTypeRule> routeEncodingRules = new ArrayList<BinaryMapRouteReaderAdapter.RouteTypeRule>();
+		
 		int nameTypeRule = -1;
 		int refTypeRule = -1;
 		
@@ -165,7 +178,7 @@ public class BinaryMapRouteReaderAdapter {
 			return routeEncodingRules.get(id);
 		}
 
-		public void initRouteEncodingRule(int id, String tags, String val) {
+		private void initRouteEncodingRule(int id, String tags, String val) {
 			while(routeEncodingRules.size() <= id) {
 				routeEncodingRules.add(null);
 			}
@@ -179,6 +192,10 @@ public class BinaryMapRouteReaderAdapter {
 		
 		public List<RouteSubregion> getSubregions(){
 			return subregions;
+		}
+		
+		public List<RouteSubregion> getBaseSubregions(){
+			return basesubregions;
 		}
 
 		public double getLeftLongitude() {
@@ -214,6 +231,7 @@ public class BinaryMapRouteReaderAdapter {
 		}
 	}
 	
+	// Used in C++
 	public static class RouteSubregion {
 		private final static int INT_SIZE = 4;
 		public final RouteRegion routeReg;
@@ -249,6 +267,16 @@ public class BinaryMapRouteReaderAdapter {
 				}
 			}
 			return shallow;
+		}
+		
+		public int countSubregions(){
+			int cnt = 1;
+			if (subregions != null) {
+				for (RouteSubregion s : subregions) {
+					cnt += s.countSubregions();
+				}
+			}
+			return cnt;
 		}
 	}
 	
@@ -287,19 +315,42 @@ public class BinaryMapRouteReaderAdapter {
 				codedIS.skipRawBytes(codedIS.getBytesUntilLimit());
 				codedIS.popLimit(oldLimit);
 			}  break;
-			case OsmandOdb.OsmAndRoutingIndex.ROOTBOXES_FIELD_NUMBER : {
+			case OsmandOdb.OsmAndRoutingIndex.ROOTBOXES_FIELD_NUMBER :
+			case OsmandOdb.OsmAndRoutingIndex.BASEMAPBOXES_FIELD_NUMBER :{
 				RouteSubregion subregion = new RouteSubregion(region);
 				subregion.length = readInt();
 				subregion.filePointer = codedIS.getTotalBytesRead();
 				int oldLimit = codedIS.pushLimit(subregion.length);
 				readRouteTree(subregion, null, 0, true);
-				region.getSubregions().add(subregion);
+				if(tag == OsmandOdb.OsmAndRoutingIndex.ROOTBOXES_FIELD_NUMBER) {
+					region.subregions.add(subregion);
+				} else {
+					region.basesubregions.add(subregion);
+				}
 				codedIS.skipRawBytes(codedIS.getBytesUntilLimit());
 				codedIS.popLimit(oldLimit);
-				
+				break;
+			}
+			case OsmandOdb.OsmAndRoutingIndex.BASEBORDERBOX_FIELD_NUMBER: 
+			case OsmandOdb.OsmAndRoutingIndex.BORDERBOX_FIELD_NUMBER: {
+				int length = readInt();
+				int filePointer = codedIS.getTotalBytesRead();
+				if(tag == OsmandOdb.OsmAndRoutingIndex.BORDERBOX_FIELD_NUMBER) {
+					region.borderBoxLength = length;
+					region.borderBoxPointer = filePointer;
+				} else {
+					region.baseBorderBoxLength = length;
+					region.baseBorderBoxPointer = filePointer;
+				}
+				codedIS.skipRawBytes(length);
+				break;
+			}
+			case OsmandOdb.OsmAndRoutingIndex.BLOCKS_FIELD_NUMBER : {
 				// Finish reading file!
 				codedIS.skipRawBytes(codedIS.getBytesUntilLimit());
-			}	break;
+				break;
+			}	
+				
 			
 			default:
 				skipUnknownField(t);
@@ -576,6 +627,11 @@ public class BinaryMapRouteReaderAdapter {
 				break;
 			case RouteDataBox.SHIFTTODATA_FIELD_NUMBER :
 				thisTree.shiftToData = readInt();
+				if(!readChildren) {
+					// usually 0
+					thisTree.subregions = new ArrayList<BinaryMapRouteReaderAdapter.RouteSubregion>();
+					readChildren = true;
+				}
 				break;
 			case RouteDataBox.BOXES_FIELD_NUMBER :
 				if(readChildren){
@@ -599,30 +655,40 @@ public class BinaryMapRouteReaderAdapter {
 		}
 	}
 	
-	public void initRouteTypesIfNeeded(SearchRequest<RouteDataObject> req) throws IOException{
-		for(RouteRegion r:  map.getRoutingIndexes() ) {
-			if (r.routeEncodingRules.isEmpty()) {
-				boolean intersect = false;
-				for (RouteSubregion rs : r.subregions) {
-					if (req.intersects(rs.left, rs.top, rs.right, rs.bottom)) {
-						intersect = true;
-						break;
-					}
-				}
-				if(intersect) {
-					codedIS.seek(r.filePointer);
-					int oldLimit = codedIS.pushLimit(r.length);
-					readRouteIndex(r);
-					codedIS.popLimit(oldLimit);
-				}
+	public void initRouteTypesIfNeeded(SearchRequest<RouteDataObject> req, List<RouteSubregion> list) throws IOException {
+		for (RouteSubregion rs : list) {
+			if (req.intersects(rs.left, rs.top, rs.right, rs.bottom)) {
+				initRouteRegion(rs.routeReg);
 			}
 		}
-		
+	}
+
+	public void initRouteRegion(RouteRegion routeReg) throws IOException, InvalidProtocolBufferException {
+		if (routeReg.routeEncodingRules.isEmpty()) {
+			codedIS.seek(routeReg.filePointer);
+			int oldLimit = codedIS.pushLimit(routeReg.length);
+			readRouteIndex(routeReg);
+			codedIS.popLimit(oldLimit);
+		}
+	}
+
+	
+	public List<RouteDataObject> loadRouteRegionData(RouteSubregion rs) throws IOException {
+		TLongArrayList idMap = new TLongArrayList();
+		TLongObjectHashMap<TLongArrayList> restrictionMap = new TLongObjectHashMap<TLongArrayList>();
+		if (rs.dataObjects == null) {
+			codedIS.seek(rs.filePointer + rs.shiftToData);
+			int limit = codedIS.readRawVarint32();
+			int oldLimit = codedIS.pushLimit(limit);
+			readRouteTreeData(rs, idMap, restrictionMap);
+			codedIS.popLimit(oldLimit);
+		}
+		List<RouteDataObject> res = rs.dataObjects;
+		rs.dataObjects = null;
+		return res;
 	}
 	
-	public void searchRouteRegion(SearchRequest<RouteDataObject> req, List<RouteSubregion> list) throws IOException {
-		List<RouteSubregion> toLoad = new ArrayList<BinaryMapRouteReaderAdapter.RouteSubregion>();
-		searchRouteRegion(req, list, toLoad);
+	public void loadRouteRegionData(List<RouteSubregion> toLoad, ResultMatcher<RouteDataObject> matcher) throws IOException {
 		Collections.sort(toLoad, new Comparator<RouteSubregion>() {
 			@Override
 			public int compare(RouteSubregion o1, RouteSubregion o2) {
@@ -643,7 +709,7 @@ public class BinaryMapRouteReaderAdapter {
 			}
 			for (RouteDataObject ro : rs.dataObjects) {
 				if (ro != null) {
-					req.publish(ro);
+					matcher.publish(ro);
 				}
 			}
 			// free objects
@@ -651,8 +717,9 @@ public class BinaryMapRouteReaderAdapter {
 		}
 	}
 
-	private void searchRouteRegion(SearchRequest<RouteDataObject> req, List<RouteSubregion> list, List<RouteSubregion> toLoad) throws IOException {
-		for(RouteSubregion rs : list){
+	public List<RouteSubregion> searchRouteRegionTree(SearchRequest<RouteDataObject> req, List<RouteSubregion> list, 
+			List<RouteSubregion> toLoad) throws IOException {
+		for (RouteSubregion rs : list) {
 			if (req.intersects(rs.left, rs.top, rs.right, rs.bottom)) {
 				if (rs.subregions == null) {
 					codedIS.seek(rs.filePointer);
@@ -660,13 +727,194 @@ public class BinaryMapRouteReaderAdapter {
 					readRouteTree(rs, null, req.contains(rs.left, rs.top, rs.right, rs.bottom) ? -1 : 1, false);
 					codedIS.popLimit(old);
 				}
-				searchRouteRegion(req, rs.subregions, toLoad);
+				searchRouteRegionTree(req, rs.subregions, toLoad);
 
 				if (rs.shiftToData != 0) {
 					toLoad.add(rs);
 				}
 			}
 		}
+		return toLoad;
+	}
+	
+	public List<RouteDataBorderLinePoint> searchBorderPoints(SearchRequest<RouteDataBorderLinePoint> req, RouteRegion r) throws IOException {
+		if(r.borderBoxPointer != 0) {
+			codedIS.seek(r.borderBoxPointer);
+			int old = codedIS.pushLimit(r.borderBoxLength);
+			TIntArrayList blocksToRead = new TIntArrayList();
+			readBorderLines(req, blocksToRead);
+			
+			blocksToRead.sort();
+			for(int j = 0; j< blocksToRead.size() ; j++) {
+				codedIS.seek(blocksToRead.get(j));
+				int len = codedIS.readRawVarint32();
+				int oldLimit = codedIS.pushLimit(len);
+				readBorderLinePoints(req, r);
+				codedIS.popLimit(oldLimit);
+			}
+			codedIS.popLimit(old);
+			
+		}
+		return req.getSearchResults();
+	}
+	
+	
+	private void readBorderLinePoints(SearchRequest<RouteDataBorderLinePoint> req, RouteRegion r) throws IOException {
+		int x = 0;
+		int y = 0;
+		long id = 0;
+		while (true) {
+			int t = codedIS.readTag();
+			int tag = WireFormat.getTagFieldNumber(t);
+			switch (tag) {
+			case 0:
+				return;
+			case RouteBorderPointsBlock.X_FIELD_NUMBER: {
+				x = codedIS.readInt32();
+				break;
+			}
+			case RouteBorderPointsBlock.Y_FIELD_NUMBER: {
+				y = codedIS.readInt32();
+				break;
+			}
+			case RouteBorderPointsBlock.BASEID_FIELD_NUMBER: {
+				id = codedIS.readInt64();
+				break;
+			}
+			case RouteBorderPointsBlock.POINTS_FIELD_NUMBER:
+				int len = codedIS.readRawVarint32();
+				int oldLimit = codedIS.pushLimit(len);
+				RouteDataBorderLinePoint p = readBorderLinePoint(new RouteDataBorderLinePoint(r), x, y, id);
+				codedIS.popLimit(oldLimit);
+				x = p.x;
+				y = p.y;
+				id = p.id;
+				req.publish(p);
+				break;
+			default:
+				skipUnknownField(t);
+				break;
+			}
+		}
+		
+	}
+	
+	private RouteDataBorderLinePoint readBorderLinePoint(RouteDataBorderLinePoint p, int x, int y, long id) throws IOException {
+		while (true) {
+			int t = codedIS.readTag();
+			int tag = WireFormat.getTagFieldNumber(t);
+			switch (tag) {
+			case 0:
+				return p;
+			case RouteBorderPoint.DX_FIELD_NUMBER:
+				p.x =  x + codedIS.readInt32();
+				break;
+			case RouteBorderPoint.DY_FIELD_NUMBER:
+				p.y =  y + codedIS.readInt32();
+				break;
+			case RouteBorderPoint.ROADID_FIELD_NUMBER:
+				p.id =  id + codedIS.readSInt64();
+				break;
+			case RouteBorderPoint.DIRECTION_FIELD_NUMBER:
+				p.direction = codedIS.readBool();
+				break;
+			case RouteBorderPoint.TYPES_FIELD_NUMBER:
+				TIntArrayList types = new TIntArrayList();
+				int len = codedIS.readRawVarint32();
+				int oldLimit = codedIS.pushLimit(len);
+				while(codedIS.getBytesUntilLimit() > 0) {
+					types.add(codedIS.readRawVarint32());
+				}
+				codedIS.popLimit(oldLimit);
+				p.types = types.toArray();
+				break;
+			default:
+				skipUnknownField(t);
+				break;
+			}
+		}
+	}
+
+	private void readBorderLines(SearchRequest<RouteDataBorderLinePoint> req, TIntArrayList blocksToRead) throws IOException {
+		while (true) {
+			int t = codedIS.readTag();
+			int tag = WireFormat.getTagFieldNumber(t);
+			switch (tag) {
+			case 0:
+				return;
+			case RouteBorderBox.BORDERLINES_FIELD_NUMBER: {
+				int fp = codedIS.getTotalBytesRead();
+				int length = codedIS.readRawVarint32();
+				int old = codedIS.pushLimit(length);
+				
+				RouteBorderLine ln = readBorderLine();
+				if(ln.hasTox() && req.intersects(ln.getX(), ln.getY(), ln.getTox(), ln.getY())) {
+					blocksToRead.add(ln.getShiftToPointsBlock() + fp);
+					// FIXME borders approach
+//				} else if(ln.hasToy() && req.intersects(ln.getX(), ln.getY(), ln.getX(), ln.getToy())) {
+//					blocksToRead.add(ln.getShiftToPointsBlock() + fp);
+				} 
+				codedIS.popLimit(old);
+				break;
+			}
+			case RouteBorderBox.BLOCKS_FIELD_NUMBER:
+				return;
+			default:
+				skipUnknownField(t);
+				break;
+			}
+		}
+		
+	}
+
+	private RouteBorderLine readBorderLine() throws IOException {
+		Builder bld = RouteBorderLine.newBuilder();
+		while (true) {
+			int t = codedIS.readTag();
+			int tag = WireFormat.getTagFieldNumber(t);
+			switch (tag) {
+			case 0:
+				return bld.build();
+			case RouteBorderLine.X_FIELD_NUMBER:
+				bld.setX(codedIS.readInt32());
+				break;
+			case RouteBorderLine.Y_FIELD_NUMBER:
+				bld.setY(codedIS.readInt32());
+				break;
+			case RouteBorderLine.TOX_FIELD_NUMBER:
+				bld.setTox(codedIS.readInt32());
+				break;
+			case RouteBorderLine.TOY_FIELD_NUMBER:
+				bld.setToy(codedIS.readInt32());
+				break;
+			case RouteBorderLine.SHIFTTOPOINTSBLOCK_FIELD_NUMBER:
+				bld.setShiftToPointsBlock(readInt());
+				break;
+			default:
+				skipUnknownField(t);
+				break;
+			}
+		}
+	}
+
+	public List<RouteSubregion> loadInteresectedPoints(SearchRequest<RouteDataObject> req, List<RouteSubregion> list, 
+			List<RouteSubregion> toLoad) throws IOException {
+		for (RouteSubregion rs : list) {
+			if (req.intersects(rs.left, rs.top, rs.right, rs.bottom)) {
+				if (rs.subregions == null) {
+					codedIS.seek(rs.filePointer);
+					int old = codedIS.pushLimit(rs.length);
+					readRouteTree(rs, null, req.contains(rs.left, rs.top, rs.right, rs.bottom) ? -1 : 1, false);
+					codedIS.popLimit(old);
+				}
+				searchRouteRegionTree(req, rs.subregions, toLoad);
+
+				if (rs.shiftToData != 0) {
+					toLoad.add(rs);
+				}
+			}
+		}
+		return toLoad;
 	}
 	
 }

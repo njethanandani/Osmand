@@ -37,7 +37,7 @@ public class CachedOsmandIndexes {
 	private Log log = LogUtil.getLog(CachedOsmandIndexes.class);
 	private boolean hasChanged = true;
 	
-	public static final int VERSION = 1;
+	public static final int VERSION = 2;
 
 	public void addToCache(BinaryMapIndexReader reader, File f) {
 		hasChanged = true;
@@ -53,7 +53,8 @@ public class CachedOsmandIndexes {
 		}
 		
 		FileIndex.Builder fileIndex = OsmandIndex.FileIndex.newBuilder();
-		fileIndex.setDateModified(f.lastModified());
+		long d = reader.getDateCreated();
+		fileIndex.setDateModified(d== 0?f.lastModified() : d);
 		fileIndex.setSize(f.length());
 		fileIndex.setVersion(reader.getVersion());
 		fileIndex.setFileName(f.getName());
@@ -140,21 +141,29 @@ public class CachedOsmandIndexes {
 				routing.setName(index.getName());
 			}
 			for(RouteSubregion sub : index.getSubregions()) {
-				OsmandIndex.RoutingSubregion.Builder rpart = OsmandIndex.RoutingSubregion.newBuilder();
-				rpart.setSize(sub.length);
-				rpart.setOffset(sub.filePointer);
-				rpart.setLeft(sub.left);
-				rpart.setRight(sub.right);
-				rpart.setTop(sub.top);
-				rpart.setBottom(sub.bottom);
-				rpart.setShifToData(sub.shiftToData);
-				routing.addSubregions(rpart);
+				addRouteSubregion(routing, sub, false);
+			}
+			for(RouteSubregion sub : index.getBaseSubregions()) {
+				addRouteSubregion(routing, sub, true);
 			}
 			fileIndex.addRoutingIndex(routing);
 		}
 		
 		storedIndexBuilder.addFileIndex(fileIndex);
 		
+	}
+
+	private void addRouteSubregion(RoutingPart.Builder routing, RouteSubregion sub, boolean base) {
+		OsmandIndex.RoutingSubregion.Builder rpart = OsmandIndex.RoutingSubregion.newBuilder();
+		rpart.setSize(sub.length);
+		rpart.setOffset(sub.filePointer);
+		rpart.setLeft(sub.left);
+		rpart.setRight(sub.right);
+		rpart.setTop(sub.top);
+		rpart.setBasemap(base);
+		rpart.setBottom(sub.bottom);
+		rpart.setShifToData(sub.shiftToData);
+		routing.addSubregions(rpart);
 	}
 	
 	public BinaryMapIndexReader getReader(File f) throws IOException {
@@ -187,7 +196,7 @@ public class CachedOsmandIndexes {
 	private BinaryMapIndexReader initFileIndex(FileIndex found, RandomAccessFile mf) throws IOException {
 		BinaryMapIndexReader reader = new BinaryMapIndexReader(mf, false);
 		reader.version = found.getVersion();
-		reader.dateCreated =found.getDateModified();
+		reader.dateCreated = found.getDateModified();
 		
 		for(MapPart index : found.getMapIndexList()) {
 			MapIndex mi = new MapIndex();
@@ -276,7 +285,11 @@ public class CachedOsmandIndexes {
 				sub.top = mr.getTop();
 				sub.bottom = mr.getBottom();
 				sub.shiftToData = mr.getShifToData();
-				mi.subregions.add(sub);
+				if(mr.getBasemap()) {
+					mi.basesubregions.add(sub);
+				} else {
+					mi.subregions.add(sub);
+				}
 			}
 			reader.routingIndexes.add(mi);
 			reader.indexes.add(mi);
